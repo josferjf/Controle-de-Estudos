@@ -104,17 +104,20 @@ async function loadFromDatabase() {
 
 // Pequeno indicador visual no cabeçalho, para você nunca precisar se perguntar "isso já foi salvo?"
 function updateSyncStatus(status) {
-    const el = document.getElementById('sync-status-text');
-    if (!el) return;
+    const icon = document.getElementById('sync-status-icon');
+    if (!icon) return;
     if (status === 'saving') {
-        el.innerText = 'Salvando...';
-        el.style.color = 'var(--text-muted)';
+        icon.setAttribute('title', 'Salvando...');
+        icon.style.color = 'var(--header-text)';
+        icon.style.opacity = '0.6';
     } else if (status === 'synced') {
-        el.innerText = 'Salvo na nuvem';
-        el.style.color = 'var(--primary)';
+        icon.setAttribute('title', 'Salvo na nuvem');
+        icon.style.color = 'var(--header-text)';
+        icon.style.opacity = '0.85';
     } else if (status === 'error') {
-        el.innerText = 'Erro ao salvar (verifique sua internet)';
-        el.style.color = 'var(--danger)';
+        icon.setAttribute('title', 'Erro ao salvar (verifique sua internet)');
+        icon.style.color = '#fca5a5';
+        icon.style.opacity = '1';
     }
 }
 
