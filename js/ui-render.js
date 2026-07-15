@@ -37,10 +37,26 @@
                 lucide.createIcons();
             }
 
-            appState.study_cycle.steps_sequence.forEach((step, idx) => {
+            // Matérias com peso maior ocupam mais posições na fila internamente (é assim que o peso
+            // influencia a frequência), mas mostrar cada posição como linha separada confundia, já que
+            // é sempre o mesmo próximo tópico pendente. Aqui agrupamos por matéria+tópico numa única linha.
+            const currentQueueKey = currentStep ? `${currentStep.subjectId}-${currentStep.topicId}` : null;
+
+            const groupedSteps = new Map();
+            appState.study_cycle.steps_sequence.forEach((step) => {
+                const key = `${step.subjectId}-${step.topicId}`;
+                if (!groupedSteps.has(key)) {
+                    groupedSteps.set(key, { step, count: 0 });
+                }
+                groupedSteps.get(key).count++;
+            });
+
+            groupedSteps.forEach((data, key) => {
+                const step = data.step;
                 const item = document.createElement('div');
-                item.className = `cycle-item ${idx === appState.study_cycle.current_step_index ? 'active' : ''}`;
-                item.innerHTML = `<div><strong>${step.subjectName}</strong><br><small style="color:var(--text-muted);">${step.topicTitle}</small></div>
+                item.className = `cycle-item ${key === currentQueueKey ? 'active' : ''}`;
+                const freqBadge = data.count > 1 ? `<span class="badge badge-purple" style="margin-left:6px;">${data.count}x na fila</span>` : '';
+                item.innerHTML = `<div><strong>${step.subjectName}</strong>${freqBadge}<br><small style="color:var(--text-muted);">${step.topicTitle}</small></div>
                 <span class="badge ${step.isReviewMode ? 'badge-danger' : 'badge-success'}">${step.isReviewMode ? 'Revisão' : 'Teoria'}</span>`;
                 container.appendChild(item);
             });
