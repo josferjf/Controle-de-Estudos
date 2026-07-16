@@ -244,8 +244,79 @@
             let minutesData = labels.map(l => Math.round(subjectDataMap[l].minutes));
             
             if(chartRadarInstance) chartRadarInstance.destroy();
+            if(chartPerformanceRadarInstance) chartPerformanceRadarInstance.destroy();
             if(chartLineInstance) chartLineInstance.destroy();
             if(chartBarInstance) chartBarInstance.destroy();
+
+            // Radar de Desempenho: só entram matérias com questões registradas no período, para não confundir
+            // "sem dados ainda" com "desempenho ruim" (ambos apareceriam como 0%)
+            const radarLabels = labels.filter(l => subjectDataMap[l].questions > 0);
+            const radarPerformanceData = radarLabels.map(l => {
+                const d = subjectDataMap[l];
+                return d.questions > 0 ? Math.round((d.correct / d.questions) * 100) : 0;
+            });
+            const targetScoreForRadar = appState.user_configuration.target_score || 85;
+
+            const ctxPerformanceRadar = document.getElementById('canvas-performance-radar');
+            const existingRadarNotice = document.getElementById('performance-radar-notice');
+            if (ctxPerformanceRadar && radarLabels.length >= 3) {
+                ctxPerformanceRadar.style.display = 'block';
+                if (existingRadarNotice) existingRadarNotice.remove();
+                chartPerformanceRadarInstance = new Chart(ctxPerformanceRadar.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: radarLabels,
+                        datasets: [
+                            {
+                                label: 'Seu Desempenho',
+                                data: radarPerformanceData,
+                                borderColor: '#f59e0b',
+                                backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#f59e0b'
+                            },
+                            {
+                                label: `Nota de Corte (${targetScoreForRadar}%)`,
+                                data: radarLabels.map(() => targetScoreForRadar),
+                                borderColor: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                                borderWidth: 1.5,
+                                borderDash: [6, 4],
+                                pointRadius: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 100,
+                                grid: { color: gridColor },
+                                angleLines: { color: gridColor },
+                                pointLabels: { color: tickColor, font: { size: 11 } },
+                                ticks: { color: tickColor, backdropColor: 'transparent', stepSize: 20 }
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: tickColor, font: { family: 'Inter', weight: 500 } } }
+                        }
+                    }
+                });
+            } else if (ctxPerformanceRadar) {
+                // Radar precisa de pelo menos 3 eixos para fazer sentido visualmente
+                ctxPerformanceRadar.style.display = 'none';
+                const noticeId = 'performance-radar-notice';
+                let notice = document.getElementById(noticeId);
+                if (!notice) {
+                    notice = document.createElement('p');
+                    notice.id = noticeId;
+                    notice.style.cssText = 'color: var(--text-muted); font-size: 13px; text-align: center; padding: 30px 0;';
+                    ctxPerformanceRadar.parentElement.appendChild(notice);
+                }
+                notice.innerText = 'Registre questões em pelo menos 3 matérias diferentes para ver o radar de desempenho.';
+            }
 
             const ctxPizza = document.getElementById('canvas-radar').getContext('2d');
             chartRadarInstance = new Chart(ctxPizza, {
