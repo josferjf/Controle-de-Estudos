@@ -42,6 +42,7 @@ const POMODORO_LONG_BREAK_SECONDS = 15 * 60;
 let currentStatsPeriod = 'all';
 
 let chartRadarInstance = null;
+let chartPerformanceRadarInstance = null;
 let chartLineInstance = null;
 let chartBarInstance = null;
 
