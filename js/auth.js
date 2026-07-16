@@ -20,14 +20,27 @@ function showLoginView() {
     document.getElementById('app-shell').style.display = 'none';
     document.getElementById('login-form-view').style.display = 'block';
     document.getElementById('signup-form-view').style.display = 'none';
+    document.getElementById('forgot-password-view').style.display = 'none';
     document.getElementById('login-error-msg').style.display = 'none';
+    document.getElementById('login-success-msg').style.display = 'none';
     lucide.createIcons();
 }
 
 function showSignupView() {
     document.getElementById('login-form-view').style.display = 'none';
     document.getElementById('signup-form-view').style.display = 'block';
+    document.getElementById('forgot-password-view').style.display = 'none';
     document.getElementById('login-error-msg').style.display = 'none';
+    document.getElementById('login-success-msg').style.display = 'none';
+    lucide.createIcons();
+}
+
+function showForgotPasswordView() {
+    document.getElementById('login-form-view').style.display = 'none';
+    document.getElementById('signup-form-view').style.display = 'none';
+    document.getElementById('forgot-password-view').style.display = 'block';
+    document.getElementById('login-error-msg').style.display = 'none';
+    document.getElementById('login-success-msg').style.display = 'none';
     lucide.createIcons();
 }
 
@@ -37,7 +50,15 @@ function showAppView() {
 }
 
 function showLoginError(message) {
+    document.getElementById('login-success-msg').style.display = 'none';
     const el = document.getElementById('login-error-msg');
+    el.innerText = message;
+    el.style.display = 'block';
+}
+
+function showLoginSuccess(message) {
+    document.getElementById('login-error-msg').style.display = 'none';
+    const el = document.getElementById('login-success-msg');
     el.innerText = message;
     el.style.display = 'block';
 }
@@ -102,4 +123,21 @@ function handleSignupSubmit() {
 function handleLogout() {
     if (!confirm('Deseja realmente sair?')) return;
     firebase.auth().signOut();
+}
+
+function handleForgotPasswordSubmit() {
+    const email = document.getElementById('forgot-password-email').value.trim();
+
+    if (!email) {
+        showLoginError('Informe o e-mail da sua conta.');
+        return;
+    }
+
+    firebase.auth().sendPasswordResetEmail(email)
+        .then(() => {
+            showLoginSuccess('Link de recuperação enviado! Confira sua caixa de entrada (e também o spam).');
+        })
+        .catch((err) => {
+            showLoginError(translateAuthError(err.code));
+        });
 }
