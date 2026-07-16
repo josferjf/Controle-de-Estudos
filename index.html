@@ -33,6 +33,9 @@
                 <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
                     Não tem conta? <a href="#" onclick="showSignupView(); return false;" style="color: var(--primary);">Criar conta</a>
                 </p>
+                <p style="text-align: center; font-size: 13px; margin-top: 8px; color: var(--text-muted);">
+                    <a href="#" onclick="showForgotPasswordView(); return false;" style="color: var(--text-muted);">Esqueci minha senha</a>
+                </p>
             </div>
 
             <div id="signup-form-view" style="display: none;">
@@ -54,7 +57,22 @@
                 </p>
             </div>
 
+            <div id="forgot-password-view" style="display: none;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                    Informe o e-mail da sua conta. Vamos enviar um link para você criar uma nova senha.
+                </p>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="forgot-password-email" placeholder="seu@email.com">
+                </div>
+                <button class="btn" style="width: 100%;" onclick="handleForgotPasswordSubmit()"><i data-lucide="send"></i> Enviar Link de Recuperação</button>
+                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
+                    <a href="#" onclick="showLoginView(); return false;" style="color: var(--primary);">Voltar para o login</a>
+                </p>
+            </div>
+
             <div id="login-error-msg" style="display: none; margin-top: 15px; padding: 10px; background: var(--danger-alpha); color: var(--danger); border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
+            <div id="login-success-msg" style="display: none; margin-top: 15px; padding: 10px; background: var(--primary-alpha); color: var(--primary); border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
         </div>
     </div>
 
