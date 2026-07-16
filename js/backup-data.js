@@ -30,10 +30,18 @@
         function exportContextSummaryToCSV() {
             const totalT = appState.subjects.reduce((acc, s) => acc + s.topics.length, 0);
             const doneT = appState.subjects.reduce((acc, s) => acc + s.topics.filter(t => t.completed).length, 0);
+            const dist = appState.user_configuration.daily_distribution || {};
             const headers = ['Campo', 'Valor'];
             const rows = [
                 ['Nota_de_Corte_Almejada', `${appState.user_configuration.target_score || 85}%`],
                 ['Carga_Horaria_Semanal', `${appState.user_configuration.weekly_hours_goal || 0}h`],
+                ['Distribuicao_Segunda', `${dist.segunda || 0}h`],
+                ['Distribuicao_Terca', `${dist.terca || 0}h`],
+                ['Distribuicao_Quarta', `${dist.quarta || 0}h`],
+                ['Distribuicao_Quinta', `${dist.quinta || 0}h`],
+                ['Distribuicao_Sexta', `${dist.sexta || 0}h`],
+                ['Distribuicao_Sabado', `${dist.sabado || 0}h`],
+                ['Distribuicao_Domingo', `${dist.domingo || 0}h`],
                 ['Data_da_Prova', appState.user_configuration.exam_date || 'Não informada'],
                 ['Calibragem_Base', appState.user_configuration.calibration_mode === 'QUESTIONS_COUNT' ? 'Por Questões do Edital' : 'Por Peso Teórico'],
                 ['Total_de_Materias_Cadastradas', appState.subjects.length],
@@ -42,7 +50,12 @@
                 ['Total_de_Sessoes_Registradas', appState.study_logs.length],
                 ['Total_de_Simulados_Registrados', appState.mock_exams.length],
                 ['Total_de_Itens_no_Caderno_de_Erros', appState.error_notebook.length],
-                ...appState.subjects.map(s => [`Materia_${s.name}`, `Peso ${s.weight}, ${s.expected_questions} questões no edital, ${s.topics.filter(t => t.completed).length}/${s.topics.length} aulas concluídas`])
+                ...appState.subjects.map(s => [
+                    `Materia_${s.name}`,
+                    `Peso ${s.weight}, ${s.expected_questions} questões no edital, ${s.topics.filter(t => t.completed).length}/${s.topics.length} aulas concluídas, ` +
+                    `Status: ${s.isActive ? 'Ativa' : 'Pausada'}, ` +
+                    `Revisão Estratégica: ${s.isStrategicReview ? 'Sim (matéria já concluída, em modo de revisão contínua)' : 'Não'}`
+                ])
             ];
             downloadCSV(headers, rows, `controle_estudos_contexto_${Date.now()}.csv`);
         }
