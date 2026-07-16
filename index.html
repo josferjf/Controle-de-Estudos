@@ -552,6 +552,16 @@
 
             <div class="charts-flex-grid">
                 <div class="card" style="grid-column: span 2;">
+                    <div class="card-title"><span class="title-text"><i data-lucide="radar" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Radar de Desempenho por Matéria</span></div>
+                    <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">Compara sua taxa de acerto em cada matéria com a Nota de Corte que você configurou — as pontas "puxadas pra dentro" são as matérias que mais precisam de atenção.</p>
+                    <div class="canvas-container">
+                        <canvas id="canvas-performance-radar" width="500" height="320"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-flex-grid">
+                <div class="card" style="grid-column: span 2;">
                     <div class="card-title"><span class="title-text"><i data-lucide="bar-chart-3" style="width:16px; height:16px; margin-right:6px; color:var(--primary);"></i> Tempo Dedicado por Matéria (Minutos acumulados)</span></div>
                     <div class="canvas-container">
                         <canvas id="canvas-bar" width="800" height="260"></canvas>
