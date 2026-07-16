@@ -258,10 +258,10 @@
             const targetScoreForRadar = appState.user_configuration.target_score || 85;
 
             const ctxPerformanceRadar = document.getElementById('canvas-performance-radar');
-            const existingRadarNotice = document.getElementById('performance-radar-notice');
+            const radarNoticeEl = document.getElementById('performance-radar-notice');
             if (ctxPerformanceRadar && radarLabels.length >= 3) {
                 ctxPerformanceRadar.style.display = 'block';
-                if (existingRadarNotice) existingRadarNotice.remove();
+                if (radarNoticeEl) radarNoticeEl.style.display = 'none';
                 chartPerformanceRadarInstance = new Chart(ctxPerformanceRadar.getContext('2d'), {
                     type: 'radar',
                     data: {
@@ -307,15 +307,7 @@
             } else if (ctxPerformanceRadar) {
                 // Radar precisa de pelo menos 3 eixos para fazer sentido visualmente
                 ctxPerformanceRadar.style.display = 'none';
-                const noticeId = 'performance-radar-notice';
-                let notice = document.getElementById(noticeId);
-                if (!notice) {
-                    notice = document.createElement('p');
-                    notice.id = noticeId;
-                    notice.style.cssText = 'color: var(--text-muted); font-size: 13px; text-align: center; padding: 30px 0;';
-                    ctxPerformanceRadar.parentElement.appendChild(notice);
-                }
-                notice.innerText = 'Registre questões em pelo menos 3 matérias diferentes para ver o radar de desempenho.';
+                if (radarNoticeEl) radarNoticeEl.style.display = 'block';
             }
 
             const ctxPizza = document.getElementById('canvas-radar').getContext('2d');
