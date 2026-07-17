@@ -20,9 +20,9 @@ async function runAppInitialization() {
     applyBackwardCompatibilityMigrations();
 
     initTheme();
-    if (!appState.study_cycle.steps_sequence || appState.study_cycle.steps_sequence.length === 0) {
-        regenerateSmartCycle(true);
-    }
+    // Recalcula sempre (não só quando a fila estiver vazia) para garantir que eventuais correções na lógica do
+    // ciclo se reflitam imediatamente, em vez de uma fila antiga já salva continuar sendo exibida indefinidamente.
+    regenerateSmartCycle(false);
     populateSubjectSelector();
 
     // Restaura o estado preciso do cronômetro caso estivesse ativo antes de um fechamento de aba
