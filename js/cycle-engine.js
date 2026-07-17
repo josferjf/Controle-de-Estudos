@@ -89,7 +89,9 @@
                             topicId: pend.id,
                             topicTitle: pend.title,
                             isReviewMode: false,
-                            pilar: 1,
+                            // Pilar 1 (Revisão Rápida) só faz sentido quando já existe uma sessão anterior dessa
+                            // matéria pra revisar — no primeiro tópico de uma matéria nova ainda não há nada a rever.
+                            pilar: completedTopics > 0 ? 1 : 0,
                             priorityBoosted: performanceBoost > 0
                         }
                     });
