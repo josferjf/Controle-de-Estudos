@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -88,6 +89,7 @@
                 <button class="tab-btn" onclick="switchTab('errors')"><i data-lucide="alert-triangle"></i> Caderno de Erros <span id="error-badge-count" class="badge badge-danger" style="display:none; padding: 2px 6px;">0</span></button>
                 <button class="tab-btn" onclick="switchTab('stats')"><i data-lucide="trending-up"></i> Evolução</button>
                 <button class="tab-btn" onclick="switchTab('simulados')"><i data-lucide="clipboard-check"></i> Simulados</button>
+                <button class="tab-btn" onclick="switchTab('summaries')"><i data-lucide="file-text"></i> Resumos</button>
                 <button class="tab-btn" onclick="switchTab('backup')"><i data-lucide="database"></i> Backup/Dados</button>
             </nav>
             <div style="display:flex; align-items:center; gap:8px;">
@@ -673,6 +675,47 @@
             </div>
         </section>
 
+        <section id="view-summaries" class="view-section">
+            <div class="grid-container">
+                <div>
+                    <div class="card card-warning">
+                        <div class="card-title"><span class="title-text">Enviar Novo Resumo (PDF)</span></div>
+                        <div class="form-group">
+                            <label>Título do Resumo</label>
+                            <input type="text" id="summary-title-input" placeholder="Ex: Atos Administrativos">
+                        </div>
+                        <div class="form-group">
+                            <label>Matéria Vinculada (Opcional)</label>
+                            <select id="summary-subject-select"><option value="">Nenhuma / Não vincular</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Arquivo PDF (até 15 MB)</label>
+                            <input type="file" id="summary-file-input" accept="application/pdf" style="padding: 8px;">
+                        </div>
+                        <button class="btn btn-warning" style="width: 100%;" onclick="uploadSummaryPDF()"><i data-lucide="upload"></i> Enviar Resumo</button>
+                        <div id="summary-upload-progress" style="display:none; margin-top: 12px;">
+                            <div class="progress-bar-container"><div id="summary-upload-progress-bar" class="progress-bar" style="width:0%;"></div></div>
+                            <small style="color: var(--text-muted); font-size: 11px;">Enviando...</small>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="card card-primary">
+                        <div class="card-title"><span class="title-text">Seus Resumos</span></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <input type="text" id="summary-search-input" placeholder="Buscar por título/matéria..." oninput="renderSummariesList()">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <select id="summary-filter-subject" onchange="renderSummariesList()"><option value="">Todas as matérias</option></select>
+                            </div>
+                        </div>
+                        <div id="summaries-list-container"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="view-backup" class="view-section">
             <div class="card card-warning" style="margin-bottom: 25px;">
                 <div class="card-title"><span class="title-text"><i data-lucide="shield-alert" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Status do Backup</span></div>
@@ -751,6 +794,7 @@
     <script src="js/sessions.js"></script>
     <script src="js/errors-notebook.js"></script>
     <script src="js/mock-exams.js"></script>
+    <script src="js/summaries.js"></script>
     <script src="js/ui-render.js"></script>
     <script src="js/backup-data.js"></script>
     <script src="js/main.js"></script>

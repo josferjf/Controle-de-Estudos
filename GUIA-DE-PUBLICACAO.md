@@ -54,6 +54,17 @@ const firebaseConfig = {
 5. Abra o arquivo **`js/firebase-config.js`** (dos arquivos do site) e substitua os valores `"COLE_AQUI_..."` pelos valores reais que apareceram na sua tela, um por um.
 6. Salve o arquivo.
 
+### 1.5 Ativar o Armazenamento de Arquivos (Storage) — necessário para os Resumos em PDF
+
+1. No menu lateral, clique em **Compilação → Storage**.
+2. Clique em **Começar**.
+3. Escolha **"Iniciar no modo de produção"** e clique em **Avançar**.
+4. Escolha a mesma localização que você usou no Firestore e clique em **Concluído**.
+5. Clique na aba **Regras** (no topo).
+6. Apague todo o conteúdo que já estiver lá.
+7. Abra o arquivo **`storage.rules`** (está junto com os arquivos do site) e cole o conteúdo inteiro no lugar.
+8. Clique em **Publicar**.
+
 ---
 
 ## PARTE 2 — Publicar o site no GitHub Pages (gratuito)
