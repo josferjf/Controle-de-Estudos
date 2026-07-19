@@ -31,14 +31,23 @@
             --primary-alpha: rgba(16, 185, 129, 0.08);
             
             --warning: #f59e0b;        /* Âmbar / Terracota leve */
+            --warning-light: #fbbf24;
+            --warning-dark: #b45309;
+            --warning-gradient: linear-gradient(135deg, var(--warning-light) 0%, var(--warning) 55%, var(--warning-dark) 100%);
             --warning-hover: #d97706;
             --warning-alpha: rgba(245, 158, 11, 0.08);
             
             --danger: #ef4444;         /* Coral descontraído */
+            --danger-light: #f87171;
+            --danger-dark: #b91c1c;
+            --danger-gradient: linear-gradient(135deg, var(--danger-light) 0%, var(--danger) 55%, var(--danger-dark) 100%);
             --danger-hover: #dc2626;
             --danger-alpha: rgba(239, 68, 68, 0.08);
             
             --dark-pure: #475569;      /* Slate elegante substitui o preto absoluto */
+            --dark-pure-light: #64748b;
+            --dark-pure-dark: #334155;
+            --dark-pure-gradient: linear-gradient(135deg, var(--dark-pure-light) 0%, var(--dark-pure) 55%, var(--dark-pure-dark) 100%);
             
             /* TOKENS DE PROPORÇÃO GEOMÉTRICA */
             --radius-card: 12px;
@@ -284,14 +293,14 @@
         }
 
         /* Botões secundários convertidos para Outline/Ghost sutil */
-        .btn-warning { background-color: transparent; border: 1px solid var(--warning); color: var(--warning); }
-        .btn-warning:hover { background-color: var(--warning-alpha); }
-        .btn-danger { background-color: transparent; border: 1px solid var(--danger); color: var(--danger); }
-        .btn-danger:hover { background-color: var(--danger-alpha); }
-        .btn-purple { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); }
-        .btn-purple:hover { background-color: var(--bg-input); }
-        .btn-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-        .btn-secondary:hover { color: var(--text-main); background-color: var(--bg-input); }
+        .btn-warning { background: var(--warning-gradient); border: none; color: #fff; }
+        .btn-warning:hover { opacity: 0.95; }
+        .btn-danger { background: var(--danger-gradient); border: none; color: #fff; }
+        .btn-danger:hover { opacity: 0.95; }
+        .btn-purple { background: var(--dark-pure-gradient); border: none; color: #fff; }
+        .btn-purple:hover { opacity: 0.95; }
+        .btn-secondary { background: var(--dark-pure-gradient); border: none; color: #fff; }
+        .btn-secondary:hover { opacity: 0.95; }
 
         .focus-container {
             text-align: center;
