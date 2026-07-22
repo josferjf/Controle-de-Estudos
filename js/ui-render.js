@@ -2,6 +2,20 @@
 // RENDERIZAÇÃO PRINCIPAL DA INTERFACE E GRÁFICOS
 // ============================================================
 
+        // Modo de visão da fila de metas: 'today' (padrão), 'advance' (adiantar metas), 'two_weeks' (estimativa)
+        // É um estado só de exibição, não precisa ser salvo na nuvem — reinicia em "hoje" a cada carregamento.
+        let cycleQueueViewMode = 'today';
+
+        function toggleTwoWeeksView() {
+            cycleQueueViewMode = (cycleQueueViewMode === 'two_weeks') ? 'today' : 'two_weeks';
+            updateUI();
+        }
+
+        function advanceTodayGoals() {
+            cycleQueueViewMode = 'advance';
+            updateUI();
+        }
+
         function updateUI() {
             const count = appState.error_notebook.length;
             const badge = document.getElementById('error-badge-count');
@@ -50,8 +64,63 @@
                 }
                 groupedSteps.get(key).count++;
             });
+            const groupedArray = Array.from(groupedSteps.entries());
 
-            groupedSteps.forEach((data, key) => {
+            // --- METAS DE HOJE: filtra a fila de acordo com a cota diária configurada e o modo de visão ativo ---
+            const todayQuota = computeTodayMetaCount();
+            const todayCompleted = computeTodayCompletedMetasCount();
+            const remainingToday = Math.max(0, todayQuota - todayCompleted);
+
+            const progressEl = document.getElementById('today-goals-progress');
+            const titleEl = document.getElementById('cycle-queue-title-text');
+            const completedMsgEl = document.getElementById('today-goals-completed-msg');
+            const toggleBtn = document.getElementById('btn-toggle-two-weeks');
+            const completedTitleEl = document.getElementById('today-goals-completed-title');
+            const completedSubtitleEl = document.getElementById('today-goals-completed-subtitle');
+
+            let itemsToShow;
+            if (cycleQueueViewMode === 'two_weeks') {
+                titleEl.innerText = 'Próximas 2 Semanas (estimativa)';
+                toggleBtn.innerText = 'Voltar para Hoje';
+                const dist = appState.user_configuration.daily_distribution || {};
+                const avgDaily = Object.values(dist).reduce((a, b) => a + (parseFloat(b) || 0), 0) / 7;
+                itemsToShow = Math.max(1, Math.round(avgDaily * 14));
+                progressEl.innerText = `Estimativa com base no seu ritmo médio configurado (~${avgDaily.toFixed(1)}h/dia) — não é uma previsão exata de datas.`;
+                container.style.display = 'flex';
+                completedMsgEl.style.display = 'none';
+            } else if (cycleQueueViewMode === 'advance') {
+                titleEl.innerText = 'Metas de Hoje (adiantadas)';
+                toggleBtn.innerText = 'Ver Próximas 2 Semanas';
+                itemsToShow = remainingToday + Math.max(1, todayQuota || 3);
+                progressEl.innerText = `${todayCompleted}/${todayQuota} metas de hoje concluídas • mostrando metas adiantadas da fila`;
+                container.style.display = 'flex';
+                completedMsgEl.style.display = 'none';
+            } else {
+                titleEl.innerText = 'Metas de Hoje';
+                toggleBtn.innerText = 'Ver Próximas 2 Semanas';
+                itemsToShow = remainingToday;
+                progressEl.innerText = todayQuota > 0
+                    ? `${todayCompleted}/${todayQuota} metas de hoje concluídas`
+                    : 'Nenhuma meta programada para hoje na sua distribuição de horas.';
+
+                if (remainingToday === 0 && groupedArray.length > 0) {
+                    container.style.display = 'none';
+                    completedMsgEl.style.display = 'block';
+                    if (todayQuota > 0) {
+                        completedTitleEl.innerText = 'Metas de hoje concluídas!';
+                        completedSubtitleEl.innerText = 'Quer continuar estudando? Adiante mais metas da fila.';
+                    } else {
+                        completedTitleEl.innerText = 'Nenhuma meta programada para hoje';
+                        completedSubtitleEl.innerText = 'Quer estudar mesmo assim? Adiante metas da fila.';
+                    }
+                } else {
+                    container.style.display = 'flex';
+                    completedMsgEl.style.display = 'none';
+                }
+            }
+
+            const itemsSlice = groupedArray.slice(0, itemsToShow);
+            itemsSlice.forEach(([key, data]) => {
                 const step = data.step;
                 const item = document.createElement('div');
                 item.className = `cycle-item ${key === currentQueueKey ? 'active' : ''}`;
@@ -60,6 +129,10 @@
                 <span class="badge ${step.isReviewMode ? 'badge-danger' : 'badge-success'}">${step.isReviewMode ? 'Revisão' : 'Teoria'}</span>`;
                 container.appendChild(item);
             });
+
+            if (itemsSlice.length === 0 && container.style.display !== 'none') {
+                container.innerHTML = `<p style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">Nenhuma matéria pendente encontrada.</p>`;
+            }
 
             renderSubjectsList();
 
@@ -196,18 +269,30 @@
 
             const dailyH = parseFloat(appState.user_configuration.daily_hours_goal) || 4.5;
             const remT = totalT - doneT;
-            const daysNeeded = Math.ceil((remT * 1.5) / dailyH);
-            if(remT <= 0) { document.getElementById('config-estimated-date').innerText = "Edital Concluído!"; }
+            settleMetasBalance();
+            const debtHours = appState.study_cycle.pending_metas_balance || 0;
+            const daysNeeded = Math.ceil(((remT * 1.5) + debtHours) / dailyH);
+            if(remT <= 0 && debtHours <= 0) { document.getElementById('config-estimated-date').innerText = "Edital Concluído!"; }
             else { document.getElementById('config-estimated-date').innerText = `Aprox. ${daysNeeded} dias ativos`; }
 
             // ALTERAÇÃO 3: previsão da data de conclusão, recalculada automaticamente junto com a estimativa em dias
             const completionDateEl = document.getElementById('config-estimated-completion-date');
             if (completionDateEl) {
-                if (remT <= 0) {
+                if (remT <= 0 && debtHours <= 0) {
                     completionDateEl.innerText = "Edital Concluído!";
                 } else {
-                    const predictedDate = computeEstimatedCompletionDate(remT * 1.5);
+                    const predictedDate = computeEstimatedCompletionDate((remT * 1.5) + debtHours);
                     completionDateEl.innerText = predictedDate.toLocaleDateString('pt-BR');
+                }
+            }
+
+            const debtNoticeEl = document.getElementById('config-debt-hours-notice');
+            if (debtNoticeEl) {
+                if (debtHours > 0) {
+                    debtNoticeEl.style.display = 'block';
+                    debtNoticeEl.innerText = `Inclui ${debtHours.toFixed(1)}h de metas não cumpridas em dias anteriores, já incorporadas automaticamente a este prazo`;
+                } else {
+                    debtNoticeEl.style.display = 'none';
                 }
             }
 
