@@ -272,6 +272,7 @@
 
         // --- SUGESTÃO: CONTAGEM REGRESSIVA PARA A PROVA (D-DAY) + RITMO NECESSÁRIO X RITMO ATUAL ---
         function updateExamCountdownAndPace() {
+            settleMetasBalance();
             const daysEl = document.getElementById('exam-countdown-days');
             const requiredEl = document.getElementById('pace-required-text');
             const currentEl = document.getElementById('pace-current-text');
@@ -295,7 +296,7 @@
             const totalT = appState.subjects.reduce((acc, s) => acc + s.topics.length, 0);
             const doneT = appState.subjects.reduce((acc, s) => acc + s.topics.filter(t => t.completed).length, 0);
             const remT = totalT - doneT;
-            const totalHoursNeeded = remT * 1.5;
+            const totalHoursNeeded = (remT * 1.5) + (appState.study_cycle.pending_metas_balance || 0);
 
             const requiredPace = diffDays > 0 ? (totalHoursNeeded / diffDays) : totalHoursNeeded;
             requiredEl.innerText = `${requiredPace.toFixed(1)}h/dia`;
@@ -337,38 +338,71 @@
             customAlert("Configurações do ciclo updated globalmente.");
         }
 
-        function simulateInactivityDelay() {
+        // Calcula quantas metas (1 meta = 1 hora) estão previstas para hoje, considerando a distribuição
+        // configurada + qualquer recuperação de atraso pendente (definida pelo botão "Replanejar atrasos")
+        // Verifica dias anteriores ainda não "acertados" e soma ao saldo pendente qualquer meta não cumprida,
+        // automaticamente — sem precisar de nenhum clique ou ação manual do usuário.
+        function settleMetasBalance() {
+            const dayKeys = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
             const dist = appState.user_configuration.daily_distribution || {};
-            const dayKeys = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']; // alinhado ao Date.getDay()
             const today = new Date(); today.setHours(0, 0, 0, 0);
+            const todayKey = toLocalDateKey(today);
 
-            let missedHours = 0;
-            let missedDaysCount = 0;
-
-            for (let i = 1; i <= 14; i++) {
-                const checkDate = new Date(today);
-                checkDate.setDate(checkDate.getDate() - i);
-                const expectedHours = parseFloat(dist[dayKeys[checkDate.getDay()]]) || 0;
-                if (expectedHours <= 0) continue;
-
-                const studiedSeconds = appState.study_logs
-                    .filter(l => {
-                        const d = new Date(l.timestamp); d.setHours(0, 0, 0, 0);
-                        return d.getTime() === checkDate.getTime();
-                    })
-                    .reduce((acc, l) => acc + l.liquid_seconds, 0);
-                const studiedHours = studiedSeconds / 3600;
-
-                if (studiedHours < expectedHours) {
-                    missedHours += (expectedHours - studiedHours);
-                    missedDaysCount++;
-                }
+            // Primeira vez que esse recurso roda: define o marco inicial em "ontem", sem varrer todo o
+            // histórico anterior (evita um saldo gigante surgir do nada pra quem já usava o sistema antes).
+            if (!appState.study_cycle.balance_settled_through_date) {
+                appState.study_cycle.balance_settled_through_date = todayKey;
+                return;
             }
 
-            if (missedHours <= 0.05) {
-                customAlert("Nenhum atraso detectado nos últimos 14 dias! Seu ritmo está em dia com a distribuição configurada.");
+            if (appState.study_cycle.balance_settled_through_date === todayKey) return; // já acertado até hoje
+
+            let cursor = new Date(appState.study_cycle.balance_settled_through_date + 'T00:00:00');
+            cursor.setDate(cursor.getDate() + 1);
+            let changed = false;
+            let safety = 0;
+
+            while (cursor < today && safety < 90) {
+                const expectedMetas = Math.round(parseFloat(dist[dayKeys[cursor.getDay()]]) || 0);
+                if (expectedMetas > 0) {
+                    const cursorKey = toLocalDateKey(cursor);
+                    const completedThatDay = appState.study_logs.filter(l => toLocalDateKey(new Date(l.timestamp)) === cursorKey).length;
+                    const deficit = Math.max(0, expectedMetas - completedThatDay);
+                    appState.study_cycle.pending_metas_balance = (appState.study_cycle.pending_metas_balance || 0) + deficit;
+                    changed = true;
+                }
+                cursor.setDate(cursor.getDate() + 1);
+                safety++;
+            }
+
+            appState.study_cycle.balance_settled_through_date = todayKey;
+            if (changed) saveToDatabase();
+        }
+
+        function computeTodayMetaCount() {
+            settleMetasBalance();
+            const dist = appState.user_configuration.daily_distribution || {};
+            const dayKeys = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+            const todayHours = parseFloat(dist[dayKeys[new Date().getDay()]]) || 0;
+            return Math.round(todayHours);
+        }
+
+        // Quantas metas (sessões registradas) já foram concluídas hoje
+        function computeTodayCompletedMetasCount() {
+            const todayKey = toLocalDateKey(new Date());
+            return appState.study_logs.filter(l => toLocalDateKey(new Date(l.timestamp)) === todayKey).length;
+        }
+
+        // O replanejamento em si agora é 100% automático (veja settleMetasBalance) — este botão só força
+        // uma checagem imediata e mostra seu status atual, sem exigir nenhuma ação manual pra funcionar.
+        function simulateInactivityDelay() {
+            settleMetasBalance();
+            const balance = appState.study_cycle.pending_metas_balance || 0;
+
+            if (balance <= 0) {
+                customAlert("Nenhuma meta pendente de dias anteriores! Seu ritmo está em dia com a distribuição configurada.");
             } else {
-                customAlert(`Atraso detectado: ${missedHours.toFixed(1)}h não estudadas em ${missedDaysCount} dia(s) nos últimos 14 dias, considerando sua distribuição configurada. Recomenda-se reforçar aprox. ${(missedHours / 7).toFixed(1)}h extras por dia nos próximos 7 dias para recuperar o ritmo.`);
+                customAlert(`Você tem ${balance} meta(s) de dias anteriores que não foram concluídas. Elas continuam no ciclo normalmente e já foram incorporadas automaticamente ao prazo previsto para concluir o edital — sua carga horária diária configurada não muda, o prazo geral é que se ajusta.`);
             }
 
             regenerateSmartCycle(false);
