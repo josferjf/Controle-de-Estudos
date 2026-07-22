@@ -111,16 +111,13 @@
             gap: 15px;
         }
 
-        /* Em telas mais estreitas, as abas e botões do cabeçalho mostram só o ícone (nome some, mas continua
-           acessível via tooltip do title=""), pra nunca faltar espaço e quebrar linha, não importa quantas
-           abas o sistema tenha no futuro. */
-        @media (max-width: 1300px) {
-            .tab-label {
-                display: none;
-            }
-            .tab-btn, .theme-toggle {
-                padding: 8px 10px;
-            }
+        /* Só os botões de tema/sair ficam com ícone apenas (nome acessível via tooltip do title=""),
+           liberando espaço no cabeçalho sem tirar o texto das abas principais de navegação. */
+        .theme-toggle .tab-label {
+            display: none;
+        }
+        .theme-toggle {
+            padding: 8px 10px;
         }
 
         .logo {
