@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
@@ -86,17 +87,17 @@
                 <i data-lucide="book-open"></i> Controle de Estudos
             </div>
             <nav class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('focus')"><i data-lucide="timer"></i> Modo Foco</button>
-                <button class="tab-btn" onclick="switchTab('config')"><i data-lucide="sliders"></i> Cadastro</button>
-                <button class="tab-btn" onclick="switchTab('errors')"><i data-lucide="alert-triangle"></i> Caderno de Erros <span id="error-badge-count" class="badge badge-danger" style="display:none; padding: 2px 6px;">0</span></button>
-                <button class="tab-btn" onclick="switchTab('stats')"><i data-lucide="trending-up"></i> Evolução</button>
-                <button class="tab-btn" onclick="switchTab('simulados')"><i data-lucide="clipboard-check"></i> Simulados</button>
-                <button class="tab-btn" onclick="switchTab('backup')"><i data-lucide="database"></i> Backup/Dados</button>
+                <button class="tab-btn active" onclick="switchTab('focus')" title="Modo Foco"><i data-lucide="timer"></i> <span class="tab-label">Modo Foco</span></button>
+                <button class="tab-btn" onclick="switchTab('config')" title="Cadastro"><i data-lucide="sliders"></i> <span class="tab-label">Cadastro</span></button>
+                <button class="tab-btn" onclick="switchTab('errors')" title="Caderno de Erros"><i data-lucide="alert-triangle"></i> <span class="tab-label">Caderno de Erros</span> <span id="error-badge-count" class="badge badge-danger" style="display:none; padding: 2px 6px;">0</span></button>
+                <button class="tab-btn" onclick="switchTab('stats')" title="Evolução"><i data-lucide="trending-up"></i> <span class="tab-label">Evolução</span></button>
+                <button class="tab-btn" onclick="switchTab('simulados')" title="Simulados"><i data-lucide="clipboard-check"></i> <span class="tab-label">Simulados</span></button>
+                <button class="tab-btn" onclick="switchTab('backup')" title="Backup/Dados"><i data-lucide="database"></i> <span class="tab-label">Backup/Dados</span></button>
             </nav>
             <div style="display:flex; align-items:center; gap:8px;">
                 <i id="sync-status-icon" data-lucide="cloud" title="Salvo na nuvem" style="width:16px; height:16px; color: var(--header-text); opacity: 0.85; cursor: default;"></i>
-                <button class="theme-toggle" onclick="toggleTheme()"><i data-lucide="sun-moon"></i> Alternar Tema</button>
-                <button class="theme-toggle" onclick="handleLogout()"><i data-lucide="log-out"></i> Sair</button>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Alternar Tema"><i data-lucide="sun-moon"></i> <span class="tab-label">Alternar Tema</span></button>
+                <button class="theme-toggle" onclick="handleLogout()" title="Sair"><i data-lucide="log-out"></i> <span class="tab-label">Sair</span></button>
             </div>
         </div>
     </header>
