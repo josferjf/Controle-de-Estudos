@@ -75,8 +75,8 @@
                         datasets: [{
                             label: 'Aproveitamento %',
                             data: sorted.map(m => m.performance_percentage),
-                            borderColor: '#eab308',
-                            backgroundColor: 'rgba(234,179,8,0.15)',
+                            borderColor: '#32d74b',
+                            backgroundColor: 'rgba(50,215,75,0.15)',
                             fill: true,
                             tension: 0.3,
                             borderWidth: 2
