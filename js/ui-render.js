@@ -410,7 +410,7 @@
                     labels: labels.length > 0 ? labels : ["Sem dados"],
                     datasets: [{
                         data: minutesData.some(m => m > 0) ? minutesData : [100],
-                        backgroundColor: ['rgba(8, 145, 178, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(71, 85, 105, 0.8)', 'rgba(139, 92, 246, 0.8)'],
+                        backgroundColor: ['rgba(50, 215, 75, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(71, 85, 105, 0.8)', 'rgba(139, 92, 246, 0.8)'],
                         borderColor: isDark ? '#131825' : '#ffffff',
                         borderWidth: 2
                     }]
@@ -489,7 +489,7 @@
 
             const ctxBar = document.getElementById('canvas-bar').getContext('2d');
             let barGradient = ctxBar.createLinearGradient(0, 0, 0, 250);
-            barGradient.addColorStop(0, '#eab308');
+            barGradient.addColorStop(0, '#32d74b');
             barGradient.addColorStop(1, '#059669');
 
             chartBarInstance = new Chart(ctxBar, {
@@ -561,10 +561,10 @@
 
             function intensityColor(hours) {
                 if (hours <= 0) return 'var(--bg-input)';
-                if (hours < 1) return 'rgba(234, 179, 8, 0.25)';
-                if (hours < 2) return 'rgba(234, 179, 8, 0.5)';
-                if (hours < 4) return 'rgba(234, 179, 8, 0.75)';
-                return 'rgba(234, 179, 8, 1)';
+                if (hours < 1) return 'rgba(50, 215, 75, 0.25)';
+                if (hours < 2) return 'rgba(50, 215, 75, 0.5)';
+                if (hours < 4) return 'rgba(50, 215, 75, 0.75)';
+                return 'rgba(50, 215, 75, 1)';
             }
 
             let html = '<div style="display:flex; gap:4px;">';
