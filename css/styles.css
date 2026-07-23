@@ -1,34 +1,34 @@
-        /* CONFIGURAÇÃO DE TEMAS - PALETA CREME/MOSTARDA/MARINHO (identidade visual de referência) */
+        /* CONFIGURAÇÃO DE TEMAS - PALETA VERDE iOS + CINZAS (Centro de Controle) */
         :root[data-theme="dark"] {
-            --bg-main: #14213d;
-            --bg-card: #1b2a4a;
-            --bg-input: #1f2e4d;
-            --border: #2c3e5c;
-            --text-main: #f5f1e6;
-            --text-muted: #a8a296;
+            --bg-main: #1c1c1e;
+            --bg-card: #2c2c2e;
+            --bg-input: #3a3a3c;
+            --border: #48484a;
+            --text-main: #ffffff;
+            --text-muted: #8e8e93;
             --card-shadow: rgba(0, 0, 0, 0.35);
-            --header-text: #14213d;
-            --primary: #f2c230;
-            --primary-hover: #eab308;
-            --primary-alpha: rgba(242, 194, 48, 0.16);
-            --primary-soft: #fcd34d;
-            --primary-text: #f2c230;
+            --header-text: #ffffff;
+            --primary: #32d74b;
+            --primary-hover: #28b83e;
+            --primary-alpha: rgba(50, 215, 75, 0.16);
+            --primary-soft: #6ee787;
+            --primary-text: #32d74b;
         }
 
         :root[data-theme="light"] {
-            --bg-main: #f7f3ea;
+            --bg-main: #f2f2f7;
             --bg-card: #ffffff;
-            --bg-input: #f2ede0;
-            --border: #e8e1d0;
-            --text-main: #14213d;
-            --text-muted: #6b6558;
-            --card-shadow: rgba(20, 33, 61, 0.06);
-            --header-text: #14213d;
-            --primary: #eab308;
-            --primary-hover: #ca9a04;
-            --primary-alpha: rgba(234, 179, 8, 0.12);
-            --primary-soft: #fcd34d;
-            --primary-text: #92720b;
+            --bg-input: #f2f2f7;
+            --border: #e5e5ea;
+            --text-main: #1c1c1e;
+            --text-muted: #6e6e73;
+            --card-shadow: rgba(28, 28, 30, 0.06);
+            --header-text: #ffffff;
+            --primary: #34c759;
+            --primary-hover: #248a3d;
+            --primary-alpha: rgba(52, 199, 89, 0.12);
+            --primary-soft: #6ee787;
+            --primary-text: #1f7a34;
         }
 
         /* PALETA MODERNIZADA — mostarda como cor de ação principal; verde/laranja/vermelho como indicadores semânticos */
@@ -146,7 +146,7 @@
             gap: 6px;
             background: none;
             border: none;
-            color: rgba(20, 33, 61, 0.75);
+            color: rgba(255, 255, 255, 0.85);
             padding: 8px 16px;
             font-size: var(--fs-base);
             font-weight: 600;
@@ -156,7 +156,7 @@
 
         .tab-btn:hover {
             color: var(--header-text);
-            background-color: rgba(20, 33, 61, 0.08);
+            background-color: rgba(255, 255, 255, 0.08);
         }
 
         .tab-btn.active {
@@ -172,7 +172,7 @@
         }
 
         .theme-toggle {
-            background-color: rgba(20, 33, 61, 0.1);
+            background-color: rgba(255, 255, 255, 0.15);
             border: none;
             color: var(--header-text);
             padding: 8px 14px;
@@ -186,7 +186,7 @@
         }
         
         .theme-toggle:hover {
-            background-color: rgba(20, 33, 61, 0.18);
+            background-color: rgba(255, 255, 255, 0.25);
         }
 
         .theme-toggle i {
