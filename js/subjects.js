@@ -157,7 +157,7 @@
                 const isExpanded = expandedSubjectIds.has(s.id);
 
                 const topicsHtml = s.topics.map((t, tIdx) => `
-                    <div style="display:flex; align-items:center; gap:8px; padding: 6px 0; border-bottom: 1px solid var(--border);">
+                    <div style="display:flex; align-items:center; gap:8px; padding: 6px 0; border-bottom: 1px solid var(--border); width:100%; max-width:100%; min-width:0;">
                         <input type="checkbox" style="width:auto; flex-shrink:0;" ${t.completed ? 'checked' : ''} onchange="toggleTopicCompleted('${s.id}','${t.id}')">
                         <span style="flex:1; font-size:13px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${t.completed ? 'color:var(--text-muted); text-decoration:line-through;' : ''}" title="${t.title.replace(/"/g, '&quot;')}">${t.title}</span>
                         <div style="position:relative; flex-shrink:0;">
