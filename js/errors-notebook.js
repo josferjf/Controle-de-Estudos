@@ -175,6 +175,7 @@
             filteredList.forEach(err => {
                 const criticality = getErrorCriticality(err);
                 const borderColor = criticality === 'alta' ? 'var(--danger)' : (criticality === 'media' ? 'var(--warning)' : 'var(--border)');
+                const titleColor = criticality === 'alta' ? 'var(--danger)' : (criticality === 'media' ? 'var(--warning)' : 'var(--text-main)');
                 const criticalityBadge = criticality === 'alta' ? '<span class="badge badge-danger">Prioridade Crítica</span>' : (criticality === 'media' ? '<span class="badge badge-warning">Atenção</span>' : '');
                 const recurrenceBadge = err.recurrence_count > 0 ? `<span class="badge badge-warning">🔁 Reincidência (${err.recurrence_count}x)</span>` : '';
                 const reviewInfo = err.view_count > 0
@@ -187,7 +188,7 @@
                 card.innerHTML = `
                     <button class="filter-chip" style="position: absolute; top: 14px; right: 14px; background: var(--danger-alpha); color: var(--danger); padding: 4px 8px; font-size: 11px;" onclick="deleteErrorItem('${err.id}')"><i data-lucide="trash-2" style="width:13px; height:13px; vertical-align: middle;"></i> Excluir</button>
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding-right: 70px;">
-                        <strong style="color:var(--danger);">${err.snapshot_subject_name}</strong>
+                        <strong style="color:${titleColor};">${err.snapshot_subject_name}</strong>
                         <small style="color:var(--text-muted);">${new Date(err.timestamp).toLocaleDateString()}</small>
                     </div>
                     <div style="color:var(--text-muted); font-size:12px; margin-bottom:4px;">Referência: ${err.snapshot_topic_title}</div>
@@ -245,20 +246,30 @@
             const rootCauseCanvas = document.getElementById('canvas-errors-rootcause');
             if (rootCauseCanvas) {
                 if (chartErrorsRootCauseInstance) chartErrorsRootCauseInstance.destroy();
+                const rootCauseColors = ['#64748b', '#ef4444', '#f59e0b', '#0891b2', '#8b5cf6', '#22c55e'];
+                const rootCauseLabels = Object.keys(rootCauseMap);
                 chartErrorsRootCauseInstance = new Chart(rootCauseCanvas.getContext('2d'), {
                     type: 'doughnut',
                     data: {
-                        labels: Object.keys(rootCauseMap),
+                        labels: rootCauseLabels,
                         datasets: [{
                             data: Object.values(rootCauseMap),
-                            backgroundColor: ['#64748b', '#ef4444', '#f59e0b', '#0891b2', '#8b5cf6', '#22c55e']
+                            backgroundColor: rootCauseColors
                         }]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: tickColor, boxWidth: 12, font: { size: 11 } } } }
+                        plugins: { legend: { display: false } }
                     }
                 });
+
+                const rootCauseLegendContainer = document.getElementById('rootcause-legend-container');
+                if (rootCauseLegendContainer) {
+                    rootCauseLegendContainer.innerHTML = rootCauseLabels.map((label, i) => {
+                        const color = rootCauseColors[i % rootCauseColors.length];
+                        return `<span style="display:flex; align-items:center; gap:6px; font-size:12px; color:${tickColor};"><span style="width:11px; height:11px; border-radius:3px; background:${color}; flex-shrink:0;"></span>${label}</span>`;
+                    }).join('');
+                }
             }
 
             const monthlyMap = {};
@@ -314,6 +325,8 @@
         function renderFlashcard() {
             const { list, index, revealed } = flashcardState;
             const err = list[index];
+            const criticality = getErrorCriticality(err);
+            const titleColor = criticality === 'alta' ? 'var(--danger)' : (criticality === 'media' ? 'var(--warning)' : 'var(--text-main)');
             document.getElementById('flashcard-progress').innerText = `${index + 1} / ${list.length}`;
 
             const contentEl = document.getElementById('flashcard-content');
@@ -331,7 +344,7 @@
                 contentEl.innerHTML = `
                     <div>
                         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                            <strong style="color:var(--danger);">${err.snapshot_subject_name}</strong>
+                            <strong style="color:${titleColor};">${err.snapshot_subject_name}</strong>
                             <small style="color:var(--text-muted);">${new Date(err.timestamp).toLocaleDateString()}</small>
                         </div>
                         <div style="margin-bottom:10px; display:flex; flex-wrap:wrap; gap:6px;">
