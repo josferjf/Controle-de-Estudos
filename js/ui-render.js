@@ -409,7 +409,7 @@
             }
 
             const ctxPizza = document.getElementById('canvas-radar').getContext('2d');
-            const doughnutColors = ['rgba(50, 215, 75, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(71, 85, 105, 0.8)', 'rgba(139, 92, 246, 0.8)'];
+            const doughnutColors = ['rgba(59, 130, 246, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(71, 85, 105, 0.8)', 'rgba(139, 92, 246, 0.8)'];
             chartRadarInstance = new Chart(ctxPizza, {
                 type: 'doughnut',
                 data: {
@@ -504,7 +504,7 @@
 
             const ctxBar = document.getElementById('canvas-bar').getContext('2d');
             let barGradient = ctxBar.createLinearGradient(0, 0, 0, 250);
-            barGradient.addColorStop(0, '#32d74b');
+            barGradient.addColorStop(0, '#3b82f6');
             barGradient.addColorStop(1, '#059669');
 
             chartBarInstance = new Chart(ctxBar, {
@@ -595,10 +595,10 @@
 
             function intensityColor(hours) {
                 if (hours <= 0) return 'var(--bg-input)';
-                if (hours < 1) return 'rgba(50, 215, 75, 0.25)';
-                if (hours < 2) return 'rgba(50, 215, 75, 0.5)';
-                if (hours < 4) return 'rgba(50, 215, 75, 0.75)';
-                return 'rgba(50, 215, 75, 1)';
+                if (hours < 1) return 'rgba(59, 130, 246, 0.25)';
+                if (hours < 2) return 'rgba(59, 130, 246, 0.5)';
+                if (hours < 4) return 'rgba(59, 130, 246, 0.75)';
+                return 'rgba(59, 130, 246, 1)';
             }
 
             const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -632,10 +632,10 @@
                 <div style="display:flex; align-items:center; justify-content:flex-end; gap:5px; margin-top:12px; font-size:11px; color:var(--text-muted);">
                     <span>Menos</span>
                     <div style="width:12px; height:12px; border-radius:3px; background-color:var(--bg-input); border:1px solid var(--border);"></div>
-                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(50, 215, 75, 0.25); border:1px solid var(--border);"></div>
-                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(50, 215, 75, 0.5); border:1px solid var(--border);"></div>
-                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(50, 215, 75, 0.75); border:1px solid var(--border);"></div>
-                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(50, 215, 75, 1); border:1px solid var(--border);"></div>
+                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(59, 130, 246, 0.25); border:1px solid var(--border);"></div>
+                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(59, 130, 246, 0.5); border:1px solid var(--border);"></div>
+                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(59, 130, 246, 0.75); border:1px solid var(--border);"></div>
+                    <div style="width:12px; height:12px; border-radius:3px; background-color:rgba(59, 130, 246, 1); border:1px solid var(--border);"></div>
                     <span>Mais</span>
                 </div>
             `;
