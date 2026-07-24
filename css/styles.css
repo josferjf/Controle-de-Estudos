@@ -247,6 +247,7 @@
            ícone já define (currentColor) — dá um acabamento mais "produto crafted" sem precisar
            editar cada ícone individualmente. Degrada graciosamente em navegadores sem color-mix(). */
         .title-text > i:first-child {
+            background-color: var(--bg-input); /* reforço: sempre funciona, mesmo sem suporte a color-mix() */
             background-color: color-mix(in srgb, currentColor 15%, transparent);
             padding: 6px;
             border-radius: 50%;
