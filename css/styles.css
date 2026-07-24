@@ -1,37 +1,37 @@
-        /* CONFIGURAÇÃO DE TEMAS - PALETA VERDE iOS + CINZAS (Centro de Controle) */
+        /* CONFIGURAÇÃO DE TEMAS - PALETA AZUL (referência: menus de navegação com destaque azul) */
         :root[data-theme="dark"] {
-            --bg-main: #1c1c1e;
-            --bg-card: #2c2c2e;
-            --bg-input: #3a3a3c;
-            --border: #48484a;
-            --text-main: #ffffff;
-            --text-muted: #8e8e93;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
             --card-shadow: rgba(0, 0, 0, 0.35);
             --header-text: #ffffff;
-            --primary: #32d74b;
-            --primary-hover: #28b83e;
-            --primary-alpha: rgba(50, 215, 75, 0.16);
-            --primary-soft: #6ee787;
-            --primary-text: #32d74b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-alpha: rgba(59, 130, 246, 0.16);
+            --primary-soft: #60a5fa;
+            --primary-text: #60a5fa;
         }
 
         :root[data-theme="light"] {
-            --bg-main: #f2f2f7;
+            --bg-main: #f8fafc;
             --bg-card: #ffffff;
-            --bg-input: #f2f2f7;
-            --border: #e5e5ea;
-            --text-main: #1c1c1e;
-            --text-muted: #6e6e73;
-            --card-shadow: rgba(28, 28, 30, 0.06);
+            --bg-input: #f1f5f9;
+            --border: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --card-shadow: rgba(17, 24, 39, 0.07);
             --header-text: #ffffff;
-            --primary: #34c759;
-            --primary-hover: #248a3d;
-            --primary-alpha: rgba(52, 199, 89, 0.12);
-            --primary-soft: #6ee787;
-            --primary-text: #1f7a34;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-alpha: rgba(37, 99, 235, 0.1);
+            --primary-soft: #60a5fa;
+            --primary-text: #2563eb;
         }
 
-        /* PALETA MODERNIZADA — mostarda como cor de ação principal; verde/laranja/vermelho como indicadores semânticos */
+        /* PALETA MODERNIZADA — azul como cor de ação principal; verde/laranja/vermelho como indicadores semânticos */
         :root {
             --primary-gradient: linear-gradient(90deg, var(--primary) 0%, var(--primary-soft) 100%); /* usado só na barra de progresso */
 
