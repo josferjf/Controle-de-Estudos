@@ -24,11 +24,11 @@
             --text-muted: #6b7280;
             --card-shadow: rgba(17, 24, 39, 0.07);
             --header-text: #ffffff;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --primary-alpha: rgba(37, 99, 235, 0.1);
-            --primary-soft: #60a5fa;
-            --primary-text: #2563eb;
+            --primary: #0b1929;
+            --primary-hover: #1c3a5e;
+            --primary-alpha: rgba(11, 25, 41, 0.08);
+            --primary-soft: #2c4a6e;
+            --primary-text: #0b1929;
         }
 
         /* PALETA MODERNIZADA — azul como cor de ação principal; verde/laranja/vermelho como indicadores semânticos */
@@ -773,6 +773,10 @@
             .logo {
                 font-size: var(--fs-md);
                 flex-shrink: 0;
+            }
+
+            .logo img {
+                height: 32px !important;
             }
 
             .nav-tabs {
