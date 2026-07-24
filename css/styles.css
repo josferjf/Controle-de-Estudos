@@ -607,6 +607,8 @@
             padding: var(--space-4);
             margin-bottom: var(--space-4);
             position: relative;
+            overflow-x: hidden;
+            overflow-y: visible;
         }
 
         .error-media-preview {
