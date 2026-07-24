@@ -433,13 +433,13 @@
                         <label>Reincidências Detectadas</label>
                         <div class="stat-value orange" id="stat-errors-recurrences">0</div>
                     </div>
-                    <div class="stat-box" style="border-top: 2px solid var(--dark-pure);">
+                    <div class="stat-box" style="border-top: 2px solid var(--border);">
                         <label>Matéria com Mais Erros</label>
-                        <div class="stat-value purple" id="stat-errors-top-subject" style="font-size: 16px;">--</div>
+                        <div class="stat-value" style="color: var(--text-main); font-size: 16px;" id="stat-errors-top-subject">--</div>
                     </div>
-                    <div class="stat-box" style="border-top: 2px solid #8b5cf6;">
+                    <div class="stat-box" style="border-top: 2px solid var(--warning);">
                         <label>Nunca Revisados</label>
-                        <div class="stat-value" style="color: #8b5cf6;" id="stat-errors-never-reviewed">0</div>
+                        <div class="stat-value orange" id="stat-errors-never-reviewed">0</div>
                     </div>
                 </div>
 
@@ -449,6 +449,7 @@
                         <div class="canvas-container">
                             <canvas id="canvas-errors-rootcause" width="400" height="220"></canvas>
                         </div>
+                        <div id="rootcause-legend-container" style="display:flex; flex-wrap:wrap; gap: 8px 16px; margin-top: 12px; justify-content:center;"></div>
                     </div>
                     <div class="card">
                         <div class="card-title"><span class="title-text"><i data-lucide="bar-chart-3" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Evolução Mensal de Novos Erros</span></div>
