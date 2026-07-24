@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estudos - Sistema Avançado de Ciclos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <div id="login-screen" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="card card-primary" style="max-width: 400px; width: 100%;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div class="logo" style="justify-content: center; margin-bottom: 8px;"><i data-lucide="book-open"></i> Controle de Estudos</div>
+                <p style="color: var(--text-muted); font-size: 13px;">Seu sistema pessoal de preparação para concursos</p>
+            </div>
+
+            <div id="login-form-view">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="login-password" placeholder="••••••••">
+                </div>
+                <button class="btn" style="width: 100%;" onclick="handleLoginSubmit()"><i data-lucide="log-in"></i> Entrar</button>
+                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
+                    Não tem conta? <a href="#" onclick="showSignupView(); return false;" style="color: var(--primary-text);">Criar conta</a>
+                </p>
+                <p style="text-align: center; font-size: 13px; margin-top: 8px; color: var(--text-muted);">
+                    <a href="#" onclick="showForgotPasswordView(); return false;" style="color: var(--text-muted);">Esqueci minha senha</a>
+                </p>
+            </div>
+
+            <div id="signup-form-view" style="display: none;">
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="signup-email" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Senha (mínimo 6 caracteres)</label>
+                    <input type="password" id="signup-password" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Senha</label>
+                    <input type="password" id="signup-password-confirm" placeholder="••••••••">
+                </div>
+                <button class="btn btn-warning" style="width: 100%;" onclick="handleSignupSubmit()"><i data-lucide="user-plus"></i> Criar Conta</button>
+                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
+                    Já tem conta? <a href="#" onclick="showLoginView(); return false;" style="color: var(--primary-text);">Entrar</a>
+                </p>
+            </div>
+
+            <div id="forgot-password-view" style="display: none;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                    Informe o e-mail da sua conta. Vamos enviar um link para você criar uma nova senha.
+                </p>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="forgot-password-email" placeholder="seu@email.com">
+                </div>
+                <button class="btn" style="width: 100%;" onclick="handleForgotPasswordSubmit()"><i data-lucide="send"></i> Enviar Link de Recuperação</button>
+                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
+                    <a href="#" onclick="showLoginView(); return false;" style="color: var(--primary-text);">Voltar para o login</a>
+                </p>
+            </div>
+
+            <div id="login-error-msg" style="display: none; margin-top: 15px; padding: 10px; background: var(--danger-alpha); color: var(--danger); border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
+            <div id="login-success-msg" style="display: none; margin-top: 15px; padding: 10px; background: var(--primary-alpha); color: var(--primary); border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
+        </div>
+    </div>
+
+    <div id="app-shell" style="display: none;">
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i data-lucide="book-open"></i> Controle de Estudos
+            </div>
+            <nav class="nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('focus')" title="Modo Foco"><i data-lucide="timer"></i> <span class="tab-label">Modo Foco</span></button>
+                <button class="tab-btn" onclick="switchTab('config')" title="Cadastro"><i data-lucide="sliders"></i> <span class="tab-label">Cadastro</span></button>
+                <button class="tab-btn" onclick="switchTab('errors')" title="Caderno de Erros"><i data-lucide="alert-triangle"></i> <span class="tab-label">Caderno de Erros</span> <span id="error-badge-count" class="badge badge-danger" style="display:none; padding: 2px 6px;">0</span></button>
+                <button class="tab-btn" onclick="switchTab('stats')" title="Evolução"><i data-lucide="trending-up"></i> <span class="tab-label">Evolução</span></button>
+                <button class="tab-btn" onclick="switchTab('simulados')" title="Simulados"><i data-lucide="clipboard-check"></i> <span class="tab-label">Simulados</span></button>
+                <button class="tab-btn" onclick="switchTab('backup')" title="Backup/Dados"><i data-lucide="database"></i> <span class="tab-label">Backup/Dados</span></button>
+            </nav>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <i id="sync-status-icon" data-lucide="cloud" title="Salvo na nuvem" style="width:16px; height:16px; color: var(--header-text); opacity: 0.85; cursor: default;"></i>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Alternar Tema"><i data-lucide="sun-moon"></i> <span class="tab-label">Alternar Tema</span></button>
+                <button class="theme-toggle" onclick="handleLogout()" title="Sair"><i data-lucide="log-out"></i> <span class="tab-label">Sair</span></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div id="global-alert-zone"></div>
+
+        <section id="view-focus" class="view-section active">
+            <div class="grid-container">
+                <div>
+                    <div class="card card-primary">
+                        <div class="card-title">
+                            <span class="title-text">Sessão de Estudos Ativa</span>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <span id="focus-streak-badge" class="badge badge-warning">🔥 0 dia(s) seguido(s)</span>
+                                <span id="focus-meta-type" class="badge badge-success">Estudo Regular</span>
+                                <button class="filter-chip" style="padding: 4px 8px; font-size: 11px;" onclick="toggleFocusTotalMode()" title="Modo Foco Total"><i data-lucide="maximize" style="width:12px; height:12px;"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 25px;">
+                            <h2 id="focus-subject-title" style="font-size: var(--fs-xl); font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px;">Selecione uma matéria nas metas</h2>
+                            <p id="focus-topic-title" style="color: var(--text-muted); font-size: 14px;">Aguardando início do ciclo.</p>
+                            <div id="focus-topic-link-container" style="margin-top: 8px;"></div>
+                            <div id="review-alert-indicator" style="margin-top: 10px;"></div>
+                        </div>
+
+                        <div class="focus-container">
+                            <div class="timer-mode-selector">
+                                <button class="mode-chip active" data-mode="regular" onclick="setTimerMode('regular')"><i data-lucide="clock"></i> Cronômetro Regular</button>
+                                <button class="mode-chip" data-mode="pomodoro" onclick="setTimerMode('pomodoro')"><i data-lucide="hourglass"></i> Pomodoro (25/5)</button>
+                            </div>
+
+                            <div class="timer-display" id="timer-display">00:00:00</div>
+                            <div class="timer-status" id="timer-status">CRONÔMETRO PRONTO</div>
+                            <div id="pomodoro-phase-label" style="display:none; text-align:center; font-size:12px; color:var(--text-muted); margin-top:6px; font-weight:600;"></div>
+                            
+                            <div class="timer-controls" style="margin-top: 20px;">
+                                <button class="btn" id="btn-timer-toggle" onclick="toggleTimer()"><i data-lucide="play"></i> Iniciar Sessão</button>
+                                <button class="btn btn-secondary" onclick="resetTimer()"><i data-lucide="rotate-ccw"></i> Reiniciar</button>
+                                <button class="btn btn-secondary" onclick="skipCurrentCycleStep()"><i data-lucide="skip-forward"></i> Pular</button>
+                            </div>
+                        </div>
+
+                        <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: 25px;">
+                            <h3 style="font-size: 14px; font-weight:700; margin-bottom: 15px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i data-lucide="pen-tool" style="width:16px; height:16px;"></i> REGISTRAR RENDIMENTO DO BLOCO</h3>
+                            <label style="display:flex; align-items:center; gap:8px; margin-bottom: 15px; font-size:13px; cursor:pointer; color: var(--text-muted);">
+                                <input type="checkbox" id="input-no-questions" style="width:auto;" onchange="toggleNoQuestionsMode()"> Esta sessão foi só teoria (sem questões)
+                            </label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; align-items: end;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Questões Feitas</label>
+                                    <input type="number" id="input-log-qty" placeholder="0" min="0">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Quantidade de Acertos</label>
+                                    <input type="number" id="input-log-correct" placeholder="0" min="0">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Ajustar Tempo (opcional, em horas)</label>
+                                    <input type="number" id="input-manual-hours" placeholder="Ex: 1.5" min="0" step="0.1">
+                                </div>
+                                <div>
+                                    <button class="btn" style="width: 100%; height: 43px;" onclick="submitStudySession()"><i data-lucide="save"></i> Salvar Avanço</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card card-purple">
+                        <div class="card-title"><span class="title-text">Meta de Carga Horária</span></div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="weekly-progress-bar"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+                            <span id="weekly-progress-text">0% concluído</span>
+                            <span id="weekly-hours-text">0.0h / 30h</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 25px;" id="weekly-goals-count-text">Metas desta semana: 0 (1 meta = 1 hora de estudo)</div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                            <h4 style="font-size: 12px; font-weight:700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; margin-bottom:0;"><i data-lucide="layers" style="width:14px; height:14px;"></i> <span id="cycle-queue-title-text">Metas de Hoje</span></h4>
+                            <button class="filter-chip" style="padding: 4px 10px; background: var(--bg-input); font-size: 11px;" onclick="toggleTwoWeeksView()" id="btn-toggle-two-weeks">Ver Próximas 2 Semanas</button>
+                        </div>
+                        <div id="today-goals-progress" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;"></div>
+                        <div class="cycle-list" id="cycle-queue-container"></div>
+                        <div id="today-goals-completed-msg" style="display:none; text-align:center; padding: 20px 10px;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🎉</div>
+                            <p id="today-goals-completed-title" style="font-size: 14px; color: var(--text-main); font-weight:600; margin-bottom: 4px;">Metas de hoje concluídas!</p>
+                            <p id="today-goals-completed-subtitle" style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Quer continuar estudando? Adiante mais metas da fila.</p>
+                            <button class="btn" style="width:auto; padding: 9px 20px;" onclick="advanceTodayGoals()"><i data-lucide="fast-forward"></i> Adiantar Metas</button>
+                        </div>
+                    </div>
+
+                    <div class="card card-warning" style="margin-top: 25px;">
+                        <div class="card-title"><span class="title-text">Contagem Regressiva & Ritmo</span></div>
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <div style="font-size: var(--fs-2xl); font-weight: 800; color: var(--warning);" id="exam-countdown-days">--</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">dias até a prova</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                            <span>Ritmo necessário:</span><strong id="pace-required-text">--</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                            <span>Seu ritmo atual (últimos 7 dias):</span><strong id="pace-current-text">--</strong>
+                        </div>
+                        <div id="pace-status-indicator" style="margin-top: 12px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-config" class="view-section">
+            <div class="grid-container">
+                <div>
+                    <div class="card card-primary">
+                        <div class="card-title" id="form-subject-title-context"><span class="title-text">Nova Disciplina do Edital</span></div>
+                        <input type="hidden" id="edit-subject-id" value="">
+                        <div class="form-group">
+                            <label>Nome da Matéria</label>
+                            <input type="text" id="subject-name" placeholder="Ex: Direito Constitucional">
+                        </div>
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label>Peso Teórico (Opção A)</label>
+                                <select id="subject-weight">
+                                    <option value="1">Peso 1 (Básico)</option>
+                                    <option value="2" selected>Peso 2 (Intermediário)</option>
+                                    <option value="3">Peso 3 (Relevância Alta)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>N° de Questões no Edital (Opção B)</label>
+                                <input type="number" id="subject-questions" value="10" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group" id="subject-topics-group">
+                            <label>Divisão de Tópicos ou Aulas (Um por linha)</label>
+                            <textarea id="subject-topics" rows="4" placeholder="Aula 01: Direitos Fundamentais&#10;Aula 02: Organização do Estado"></textarea>
+                        </div>
+                        <p id="subject-edit-topics-notice" style="display:none; font-size:12px; color:var(--text-muted); margin-bottom:15px; background: var(--bg-input); padding:10px; border-radius: var(--radius-interactive);">
+                            <i data-lucide="info" style="width:12px; height:12px; vertical-align:middle;"></i> As aulas/tópicos desta matéria agora são gerenciados individualmente — use o botão "Ver/Gerenciar Aulas" no card da matéria, na lista abaixo.
+                        </p>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" id="btn-save-subject" onclick="addSubject()"><i data-lucide="plus-circle"></i> Inserir Matéria no Ciclo</button>
+                            <button class="btn btn-secondary" id="btn-cancel-edit" style="display: none;" onclick="cancelSubjectEdit()">Cancelar Edição</button>
+                        </div>
+                    </div>
+
+                    <div class="card card-primary">
+                        <div class="card-title"><span class="title-text">Matérias Ativas e Planejamento Verticalizado</span></div>
+                        <div id="config-subjects-list"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card card-purple">
+                        <div class="card-title"><span class="title-text">Parâmetros do Ciclo</span></div>
+                        <div class="form-group">
+                            <label>Calibragem Base</label>
+                            <select id="config-calibration-mode">
+                                <option value="WEIGHT">Opção A: Por Peso Teórico</option>
+                                <option value="QUESTIONS_COUNT">Opção B: Por Questões do Edital</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data da Prova (Opcional)</label>
+                            <input type="date" id="config-exam-date">
+                        </div>
+
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
+                            <div class="form-group">
+                                <label>Nota de Corte Almejada (%)</label>
+                                <input type="number" id="config-target-score" value="85" max="100" onchange="saveAdvancedGoals()">
+                            </div>
+                            <div class="form-group">
+                                <label>Periodicidade da Revisão Tudão</label>
+                                <select id="config-tudao-period" onchange="saveAdvancedGoals()">
+                                    <option value="1" selected>A cada 1 mês</option>
+                                    <option value="2">A cada 2 meses</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-warning" style="width: 100%; margin-top: 15px;" onclick="saveGlobalConfiguration()"><i data-lucide="settings"></i> Atualizar Configurações</button>
+                        
+                        <div style="margin-top: 15px; padding: 12px; background-color: var(--bg-input); border-radius: var(--radius-interactive); font-size: 12px; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                            <span><i data-lucide="calendar" style="width:14px; height:14px; vertical-align:middle; margin-right:4px; color:var(--text-muted);"></i> Previsão Matemática para Fechar Edital:</span>
+                            <strong id="config-estimated-date" style="font-size: 14px; color: var(--primary-text);">---</strong>
+                            <span style="margin-top: 4px;"><i data-lucide="calendar-check" style="width:14px; height:14px; vertical-align:middle; margin-right:4px; color:var(--text-muted);"></i> Conclusão prevista:</span>
+                            <strong id="config-estimated-completion-date" style="font-size: 14px; color: var(--primary-text);">---</strong>
+                            <small id="config-debt-hours-notice" style="display:none; color: var(--warning); margin-top: 4px;"></small>
+                        </div>
+                    </div>
+
+                    <div class="card card-purple">
+                        <div class="card-title"><span class="title-text">Carga Horária Semanal</span></div>
+                        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">
+                            Ajuste as horas de cada dia. O total semanal e a média diária são calculados automaticamente — cada 1 hora corresponde a 1 meta gerada.
+                        </p>
+
+                        <div style="text-align:center; margin-bottom:18px; padding: 15px; background: var(--bg-input); border-radius: var(--radius-interactive); border: 1px solid var(--border);">
+                            <div style="font-size: var(--fs-2xl); font-weight:800; color: var(--primary-text);" id="total-weekly-hours-display">0h</div>
+                            <div style="font-size:12px; color:var(--text-muted);">total semanal • <span id="avg-daily-hours-display">0h</span>/dia em média</div>
+                        </div>
+
+                        <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+                            <button class="filter-chip" style="padding: 6px 12px; background: var(--bg-card); font-size: 11px;" onclick="applyDistributionPreset('weekdays')">Só Dias Úteis</button>
+                            <button class="filter-chip" style="padding: 6px 12px; background: var(--bg-card); font-size: 11px;" onclick="applyDistributionPreset('everyday')">Todos os Dias Iguais</button>
+                            <button class="filter-chip" style="padding: 6px 12px; background: var(--bg-card); font-size: 11px;" onclick="applyDistributionPreset('weekend-heavy')">Foco Fim de Semana</button>
+                        </div>
+
+                        <div id="distribution-sliders-container">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <label style="width:66px; font-size:12px; color:var(--text-muted);">Segunda</label>
+                                <input type="range" id="dist-segunda" min="0" max="12" step="0.5" value="0" oninput="updateDistributionTotalDisplay()" style="flex:1;">
+                                <span id="dist-segunda-label" style="width:38px; text-align:right; font-size:13px; font-weight:600;">0h</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <label style="width:66px; font-size:12px; color:var(--text-muted);">Terça</label>
+                                <input type="range" id="dist-terca" min="0" max="12" step="0.5" value="0" oninput="updateDistributionTotalDisplay()" style="flex:1;">
+                                <span id="dist-terca-label" style="width:38px; text-align:right; font-size:13px; font-weight:600;">0h</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <label style="width:66px; font-size:12px; color:var(--text-muted);">Quarta</label>
+                                <input type="range" id="dist-quarta" min="0" max="12" step="0.5" value="0" oninput="updateDistributionTotalDisplay()" style="flex:1;">
+                                <span id="dist-quarta-label" style="width:38px; text-align:right; font-size:13px; font-weight:600;">0h</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <label style="width:66px; font-size:12px; color:var(--text-muted);">Quinta</label>
+                                <input type="range" id="dist-quinta" min="0" max="12" step="0.5" value="0" oninput="updateDistributionTotalDisplay()" style="flex:1;">
+                                <span id="dist-quinta-label" style="width:38px; text-align:right; font-size:13px; font-weight:600;">0h</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <label style="width:66px; font-size:12px; color:var(--text-muted);">Sexta</label>
+                                <input type="range" id="dist-sexta" min="0" max="12" step="0.5" value="0" oninput="updateDistributionTotalDisplay()" style="flex:1;">
+                                <span id="dist-sexta-label" style="width:38px; text-align:right; font-size:13px; font-weight:600;">0h</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <label style="width:66px; font-size:12px; color:var(--text-muted);">Sábado</label>
+                                <input type="range" id="dist-sabado" min="0" max="12" step="0.5" value="0" oninput="updateDistributionTotalDisplay()" style="flex:1;">
+                                <span id="dist-sabado-label" style="width:38px; text-align:right; font-size:13px; font-weight:600;">0h</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                                <label style="width:66px; font-size:12px; color:var(--text-muted);">Domingo</label>
+                                <input type="range" id="dist-domingo" min="0" max="12" step="0.5" value="0" oninput="updateDistributionTotalDisplay()" style="flex:1;">
+                                <span id="dist-domingo-label" style="width:38px; text-align:right; font-size:13px; font-weight:600;">0h</span>
+                            </div>
+                        </div>
+
+                        <button class="btn" style="width: 100%; margin-top: 5px;" onclick="saveWeeklyDistribution()"><i data-lucide="calendar-range"></i> Salvar Carga Horária e Gerar Metas</button>
+
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
+                            <h4 style="font-size: 12px; font-weight:700; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Metas da Semana Geradas</h4>
+                            <div id="weekly-goals-summary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-errors" class="view-section">
+            <div class="card card-danger">
+                <div class="card-title">
+                    <span class="title-text">Caderno de Erros Estratégico & Resumos</span>
+                    <span class="badge badge-danger">Gatilho Automação &lt; 80%</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    Adicione erros manualmente ou utilize o gatilho automático de rendimento. Com suporte completo para inserção de textos e prints/imagens para consulta posterior.
+                </p>
+
+                <div style="background-color: var(--bg-input); padding: 20px; border-radius: var(--radius-card); border: 1px solid var(--border); margin-bottom: 25px;">
+                    <h4 style="font-size: 14px; margin-bottom: 15px; font-weight:700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="plus" style="width:16px; height:16px;"></i> Adicionar Item ao Resumo de Erros</h4>
+                    <div class="form-group">
+                        <label>Matéria/Tópico de Referência</label>
+                        <input type="text" id="error-manual-title" placeholder="Ex: Direito Administrativo - Atos Administrativos">
+                    </div>
+                    <div class="form-grid-2col">
+                        <div class="form-group">
+                            <label>Matéria Vinculada (Opcional)</label>
+                            <select id="error-manual-subject-link"><option value="">Nenhuma / Não vincular</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo do Erro</label>
+                            <select id="error-manual-type"><option>Lei Seca</option><option>Doutrina</option><option>Jurisprudência</option><option>Interpretação</option><option>Atenção</option></select>
+                        </div>
+                    </div>
+                    <div class="form-grid-2col">
+                        <div class="form-group">
+                            <label>Causa Raiz do Erro</label>
+                            <select id="error-manual-root-cause">
+                                <option value="Não Informado">Não Informado</option>
+                                <option value="Desconhecimento do Conteúdo">Desconhecimento do Conteúdo</option>
+                                <option value="Desatenção na Leitura">Desatenção na Leitura</option>
+                                <option value="Interpretação Equivocada">Interpretação Equivocada</option>
+                                <option value="Pegadinha de Banca">Pegadinha de Banca</option>
+                                <option value="Confusão entre Institutos">Confusão entre Institutos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Vincular a Erro Anterior (Reincidência)</label>
+                            <select id="error-manual-related"><option value="">Nenhum (erro novo)</option></select>
+                        </div>
+                    </div>
+                    <div class="form-grid-2col">
+                        <div class="form-group">
+                            <label>Banca (Opcional)</label>
+                            <input type="text" id="error-manual-banca" placeholder="Ex: Cebraspe, FGV, FCC...">
+                        </div>
+                        <div class="form-group">
+                            <label>Ano da Prova de Referência (Opcional)</label>
+                            <input type="number" id="error-manual-exam-year" min="1990" max="2100" placeholder="Ex: 2024">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Texto explicativo / Pegadinha da Banca</label>
+                        <textarea id="error-manual-text" rows="3" placeholder="Insira o texto explicativo, lei seca ou resumo do erro aqui..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Adicionar Imagem / Print da Questão</label>
+                        <input type="file" id="error-manual-image" accept="image/*" style="padding: 8px;">
+                    </div>
+                    <button class="btn btn-danger" onclick="addManualError()"><i data-lucide="save"></i> Gravar no Caderno de Erros</button>
+                </div>
+
+                <div class="stats-summary-grid" style="margin-bottom: 20px;">
+                    <div class="stat-box" style="border-top: 2px solid var(--danger);">
+                        <label>Total de Erros</label>
+                        <div class="stat-value red" id="stat-errors-total">0</div>
+                    </div>
+                    <div class="stat-box" style="border-top: 2px solid var(--warning);">
+                        <label>Reincidências Detectadas</label>
+                        <div class="stat-value orange" id="stat-errors-recurrences">0</div>
+                    </div>
+                    <div class="stat-box" style="border-top: 2px solid var(--dark-pure);">
+                        <label>Matéria com Mais Erros</label>
+                        <div class="stat-value purple" id="stat-errors-top-subject" style="font-size: 16px;">--</div>
+                    </div>
+                    <div class="stat-box" style="border-top: 2px solid #8b5cf6;">
+                        <label>Nunca Revisados</label>
+                        <div class="stat-value" style="color: #8b5cf6;" id="stat-errors-never-reviewed">0</div>
+                    </div>
+                </div>
+
+                <div class="charts-flex-grid" style="margin-bottom: 25px;">
+                    <div class="card">
+                        <div class="card-title"><span class="title-text"><i data-lucide="pie-chart" style="width:16px; height:16px; margin-right:6px; color:var(--danger);"></i> Erros por Causa Raiz</span></div>
+                        <div class="canvas-container">
+                            <canvas id="canvas-errors-rootcause" width="400" height="220"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><span class="title-text"><i data-lucide="bar-chart-3" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Evolução Mensal de Novos Erros</span></div>
+                        <div class="canvas-container">
+                            <canvas id="canvas-errors-monthly" width="400" height="220"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <button class="btn" style="width: auto;" onclick="openFlashcardMode()"><i data-lucide="layers"></i> Iniciar Revisão Ativa</button>
+                    <button class="btn btn-secondary" style="width: auto;" onclick="exportErrorsToPrintablePDF()"><i data-lucide="file-down"></i> Exportar Caderno (PDF)</button>
+                </div>
+
+                <div class="form-grid-4col" style="background-color: var(--bg-input); padding: 15px; border-radius: var(--radius-card); border: 1px solid var(--border); margin-bottom: 20px; align-items: end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Buscar (texto, matéria, banca, ano...)</label>
+                        <input type="text" id="error-search-input" placeholder="Digite para buscar..." oninput="renderErrorNotebook()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Matéria</label>
+                        <select id="error-filter-subject" onchange="renderErrorNotebook()"><option value="">Todas</option></select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Causa Raiz</label>
+                        <select id="error-filter-root-cause" onchange="renderErrorNotebook()">
+                            <option value="">Todas</option>
+                            <option value="Não Informado">Não Informado</option>
+                            <option value="Desconhecimento do Conteúdo">Desconhecimento do Conteúdo</option>
+                            <option value="Desatenção na Leitura">Desatenção na Leitura</option>
+                            <option value="Interpretação Equivocada">Interpretação Equivocada</option>
+                            <option value="Pegadinha de Banca">Pegadinha de Banca</option>
+                            <option value="Confusão entre Institutos">Confusão entre Institutos</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="error-filter-unreviewed" style="width:auto;" onchange="renderErrorNotebook()"> Só nunca revisados
+                        </label>
+                    </div>
+                </div>
+
+                <div id="error-notebook-container"></div>
+            </div>
+        </section>
+
+        <section id="view-stats" class="view-section">
+            <div class="filter-timeline-container">
+                <button class="filter-chip active" id="filter-all" onclick="changeStatsPeriod('all')">Todo o Período</button>
+                <button class="filter-chip" id="filter-7" onclick="changeStatsPeriod('7')">Últimos 7 dias</button>
+                <button class="filter-chip" id="filter-30" onclick="changeStatsPeriod('30')">Últimos 30 dias</button>
+            </div>
+
+            <div class="stats-summary-grid">
+                <div class="stat-box" style="border-top: 2px solid var(--primary);">
+                    <label>Tempo Total Líquido</label>
+                    <div class="stat-value green" id="stat-total-hours">0h 00m</div>
+                    <small id="stat-total-hours-delta" style="color:var(--text-muted); font-size:11px;"></small>
+                </div>
+                <div class="stat-box" style="border-top: 2px solid var(--warning);">
+                    <label>Taxa de Acertos Geral</label>
+                    <div class="stat-value orange" id="stat-global-performance">0.0%</div>
+                    <small id="stat-global-performance-delta" style="color:var(--text-muted); font-size:11px;"></small>
+                </div>
+                <div class="stat-box" style="border-top: 2px solid var(--danger);">
+                    <label>Questões Concluídas</label>
+                    <div class="stat-value red" id="stat-total-questions">0</div>
+                    <small id="stat-total-questions-delta" style="color:var(--text-muted); font-size:11px;"></small>
+                </div>
+                <div class="stat-box" style="border-top: 2px solid var(--dark-pure);">
+                    <label>Ritmo de Resolução</label>
+                    <div class="stat-value purple" id="stat-pace">0.0 min/Q</div>
+                </div>
+                <div class="stat-box" style="border-top: 2px solid #8b5cf6;">
+                    <label>Cobertura do Edital</label>
+                    <div class="stat-value" style="color: #8b5cf6;" id="stat-edital-coverage">0.0%</div>
+                </div>
+                <div class="stat-box" style="border-top: 2px solid var(--warning);">
+                    <label>Revisões Rápidas (Pilar 1)</label>
+                    <div class="stat-value orange" id="stat-quick-reviews">0</div>
+                </div>
+                <div class="stat-box" style="border-top: 2px solid var(--primary);">
+                    <label>Tempo Médio por Sessão</label>
+                    <div class="stat-value green" id="stat-avg-session">0 min</div>
+                </div>
+            </div>
+
+            <div class="card card-primary" style="margin-bottom: 25px;">
+                <div class="card-title"><span class="title-text"><i data-lucide="calendar-days" style="width:16px; height:16px; margin-right:6px; color:var(--primary);"></i> Consistência dos Últimos Meses</span></div>
+                <div id="consistency-heatmap-container" style="overflow-x:auto;"></div>
+            </div>
+
+            <div class="charts-flex-grid">
+                <div class="card">
+                    <div class="card-title"><span class="title-text"><i data-lucide="pie-chart" style="width:16px; height:16px; margin-right:6px; color:var(--primary);"></i> Distribuição de Estudos (% por Matéria)</span></div>
+                    <div class="canvas-container">
+                        <canvas id="canvas-radar" width="400" height="260"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:10px;">
+                        <span class="title-text"><i data-lucide="line-chart" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Evolução de Performance</span>
+                        <select id="chart-subject-selector" onchange="renderCharts()" style="width: auto; padding: 4px 10px; font-size: 12px; height: 32px;">
+                            <option value="all">Todas as Matérias</option>
+                        </select>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="canvas-line" width="400" height="260"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-flex-grid">
+                <div class="card" style="grid-column: span 2;">
+                    <div class="card-title"><span class="title-text"><i data-lucide="radar" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Radar de Desempenho por Matéria</span></div>
+                    <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">Compara sua taxa de acerto em cada matéria com a Nota de Corte que você configurou — as pontas "puxadas pra dentro" são as matérias que mais precisam de atenção.</p>
+                    <div class="canvas-container">
+                        <canvas id="canvas-performance-radar" width="500" height="320"></canvas>
+                        <p id="performance-radar-notice" style="display:none; color: var(--text-muted); font-size: 13px; text-align: center; padding: 30px 0;">Registre questões em pelo menos 3 matérias diferentes para ver o radar de desempenho.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-flex-grid">
+                <div class="card" style="grid-column: span 2;">
+                    <div class="card-title"><span class="title-text"><i data-lucide="bar-chart-3" style="width:16px; height:16px; margin-right:6px; color:var(--primary);"></i> Tempo Dedicado por Matéria (Minutos acumulados)</span></div>
+                    <div class="canvas-container">
+                        <canvas id="canvas-bar" width="800" height="260"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-warning">
+                <div class="card-title"><span class="title-text"><i data-lucide="target" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Diagnóstico de Desempenho e Metas por Matéria</span></div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Matéria</th>
+                                <th>Tempo Dedicado</th>
+                                <th>Questões Feitas</th>
+                                <th>Taxa %</th>
+                                <th>Status vs. Nota de Corte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diagnose-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card card-primary">
+                <div class="card-title"><span class="title-text">Histórico de Sessões Concluídas</span></div>
+                <div class="form-group">
+                    <input type="text" id="stats-history-search" placeholder="Buscar por matéria ou tópico..." oninput="renderStudyLogsHistory()">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Matéria</th>
+                                <th>Tópico / Aula Estudada</th>
+                                <th>Carga Líquida</th>
+                                <th>Questões (A/Q)</th>
+                                <th>Rendimento</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="stats-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-simulados" class="view-section">
+            <div class="grid-container">
+                <div>
+                    <div class="card card-warning">
+                        <div class="card-title"><span class="title-text">Registrar Novo Simulado</span></div>
+                        <div class="form-group">
+                            <label>Nome/Identificação do Simulado</label>
+                            <input type="text" id="mock-exam-name" placeholder="Ex: Simulado FGV - Rodada 3">
+                        </div>
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label>Data do Simulado</label>
+                                <input type="date" id="mock-exam-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Tempo Total Gasto (horas)</label>
+                                <input type="number" id="mock-exam-hours" step="0.5" min="0" placeholder="Ex: 4">
+                            </div>
+                        </div>
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label>Questões Totais</label>
+                                <input type="number" id="mock-exam-total-questions" min="1" placeholder="Ex: 120">
+                            </div>
+                            <div class="form-group">
+                                <label>Acertos</label>
+                                <input type="number" id="mock-exam-correct" min="0" placeholder="Ex: 90">
+                            </div>
+                        </div>
+                        <button class="btn btn-warning" style="width: 100%;" onclick="addMockExam()"><i data-lucide="save"></i> Registrar Simulado</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="card card-primary">
+                        <div class="card-title"><span class="title-text">Evolução nos Simulados</span></div>
+                        <div class="canvas-container">
+                            <canvas id="canvas-mock-exams" width="400" height="260"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card card-primary">
+                <div class="card-title"><span class="title-text">Histórico de Simulados</span></div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Simulado</th>
+                                <th>Acertos</th>
+                                <th>Aproveitamento</th>
+                                <th>Tempo Gasto</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="mock-exams-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section id="view-backup" class="view-section">
+            <div class="card card-warning" style="margin-bottom: 25px;">
+                <div class="card-title"><span class="title-text"><i data-lucide="shield-alert" style="width:16px; height:16px; margin-right:6px; color:var(--warning);"></i> Status do Backup</span></div>
+                <p id="backup-status-text" style="font-size: 14px; margin: 0;">Verificando...</p>
+            </div>
+
+            <div class="grid-container">
+                <div class="card card-primary">
+                    <div class="card-title"><span class="title-text">Exportação para Análise (CSV)</span></div>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                        Exporte seus dados em CSV para leitura no Excel, Power BI, Google Sheets, ou para análise por uma IA de sua escolha. Cada tipo de dado sai em um arquivo próprio para manter a estrutura de colunas consistente.
+                    </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn" onclick="exportAllCSVForAI()"><i data-lucide="sparkles"></i> Exportar Tudo para Análise por IA</button>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+                        <button class="btn btn-secondary" style="width: auto;" onclick="exportToCSV()"><i data-lucide="file-spreadsheet"></i> Sessões</button>
+                        <button class="btn btn-secondary" style="width: auto;" onclick="exportMockExamsToCSV()"><i data-lucide="clipboard-check"></i> Simulados</button>
+                        <button class="btn btn-secondary" style="width: auto;" onclick="exportErrorNotebookToCSV()"><i data-lucide="alert-triangle"></i> Caderno de Erros</button>
+                        <button class="btn btn-secondary" style="width: auto;" onclick="exportContextSummaryToCSV()"><i data-lucide="info"></i> Contexto/Config</button>
+                    </div>
+                </div>
+                <div class="card card-purple">
+                    <div class="card-title"><span class="title-text">Salvaguarda e Restauração</span></div>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">
+                        Salve ou carregue pontos completos de restauração do seu edital e métricas para evitar perdas acidentais de cache.
+                    </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-purple" onclick="exportBackupJSON()"><i data-lucide="download"></i> Gerar Arquivo .JSON</button>
+                        <label for="import-file" class="btn btn-warning" style="margin-bottom:0; cursor:pointer;">
+                            <i data-lucide="upload" style="display:inline-block; width:16px; height:16px; vertical-align:middle; margin-right:4px;"></i> Carregar Backup .JSON
+                        </label>
+                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importBackupJSON(event)">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card card-danger" style="margin-top: 25px;">
+                <div class="card-title"><span class="title-text">Zona de Segurança de Dados</span></div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    A exclusão removerá de forma definitiva o histórico completo, caderno de erros, planejamentos e cronômetros deste dispositivo. Certifique-se de realizar um backup em formato JSON antes de prosseguir.
+                </p>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
+                    Alternativamente, é possível remover apenas o histórico de atividades concluídas, mantendo disciplinas, ciclos, metas pendentes, carga horária e demais configurações intactos.
+                </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-danger" onclick="clearAllData()"><i data-lucide="trash-2"></i> Limpar e Redefinir Todos os Dados</button>
+                    <button class="btn btn-warning" onclick="clearCompletedActivities()"><i data-lucide="eraser"></i> Excluir Apenas Atividades Concluídas</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <div id="custom-alert-modal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div style="display:flex; align-items:start; gap:14px;">
+                <i data-lucide="info" style="width:22px; height:22px; color: var(--primary); flex-shrink:0; margin-top:2px;"></i>
+                <p id="custom-alert-message"></p>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top: 22px;">
+                <button class="btn" style="width:auto; padding: 10px 28px;" onclick="closeCustomAlert()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-confirm-modal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div style="display:flex; align-items:start; gap:14px;">
+                <i data-lucide="alert-triangle" style="width:22px; height:22px; color: var(--warning); flex-shrink:0; margin-top:2px;"></i>
+                <p id="custom-confirm-message"></p>
+            </div>
+            <div style="display:flex; gap:10px; margin-top: 22px;">
+                <button class="btn btn-secondary" style="flex:1;" onclick="resolveCustomConfirm(false)">Cancelar</button>
+                <button class="btn" style="flex:1;" onclick="resolveCustomConfirm(true)">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-prompt-modal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <p id="custom-prompt-message" style="margin-bottom: 12px;"></p>
+            <input type="text" id="custom-prompt-input" style="width:100%;">
+            <div style="display:flex; gap:10px; margin-top: 18px;">
+                <button class="btn btn-secondary" style="flex:1;" onclick="cancelCustomPrompt()">Cancelar</button>
+                <button class="btn" style="flex:1;" onclick="resolveCustomPromptFromInput()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="flashcard-modal" style="display:none; position:fixed; inset:0; background-color: rgba(0,0,0,0.75); z-index: 999; align-items:center; justify-content:center; padding: 20px;">
+        <div style="background-color: var(--bg-card); border-radius: var(--radius-card); max-width: 600px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 30px; position: relative; border: 1px solid var(--border);">
+            <button onclick="closeFlashcardMode()" style="position:absolute; top:16px; right:16px; background:none; border:none; cursor:pointer; color: var(--text-muted);"><i data-lucide="x"></i></button>
+            <div id="flashcard-progress" style="font-size:12px; color: var(--text-muted); margin-bottom: 15px;">1 / 1</div>
+            <div id="flashcard-content"></div>
+            <div style="display:flex; justify-content: space-between; gap: 10px; margin-top: 25px;">
+                <button class="btn btn-secondary" style="width:auto;" onclick="flashcardPrev()"><i data-lucide="chevron-left"></i> Anterior</button>
+                <button class="btn" style="width:auto;" id="flashcard-reveal-btn" onclick="flashcardReveal()">Revelar Resposta</button>
+                <button class="btn btn-secondary" style="width:auto;" onclick="flashcardNext()">Próximo <i data-lucide="chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/custom-dialogs.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui-shell.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/cycle-engine.js"></script>
+    <script src="js/subjects.js"></script>
+    <script src="js/sessions.js"></script>
+    <script src="js/errors-notebook.js"></script>
+    <script src="js/mock-exams.js"></script>
+    <script src="js/ui-render.js"></script>
+    <script src="js/backup-data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
