@@ -134,7 +134,7 @@
                 const step = data.step;
                 const item = document.createElement('div');
                 item.className = `cycle-item ${key === currentQueueKey ? 'active' : ''}`;
-                const freqBadge = data.count > 1 ? `<span class="badge badge-purple" style="margin-left:6px;">${data.count}x na fila</span>` : '';
+                const freqBadge = data.count > 1 ? `<span class="badge badge-purple" style="margin-left:6px; white-space:nowrap; display:inline-block;">${data.count}x na fila</span>` : '';
                 const linkIcon = step.topicLink ? `<a href="${step.topicLink}" target="_blank" rel="noopener" onclick="event.stopPropagation();" title="Caderno de Questões" style="color: var(--primary-text); display:inline-flex;"><i data-lucide="link" style="width:14px; height:14px;"></i></a>` : '';
                 const materialIcon = step.topicMaterialLink ? `<a href="${step.topicMaterialLink}" target="_blank" rel="noopener" onclick="event.stopPropagation();" title="Material Teórico" style="color: var(--primary-text); display:inline-flex;"><i data-lucide="book-open" style="width:14px; height:14px;"></i></a>` : '';
                 item.innerHTML = `<div style="min-width:0; flex:1;"><strong>${step.subjectName}</strong>${freqBadge}<br><small title="${step.topicTitle.replace(/"/g, '&quot;')}" style="color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${step.topicTitle}</small></div>
