@@ -143,15 +143,16 @@
         .tab-btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             background: none;
             border: none;
             color: rgba(255, 255, 255, 0.85);
-            padding: 8px 16px;
+            padding: 6px 14px;
             font-size: var(--fs-base);
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 10px;
             cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .tab-btn:hover {
@@ -165,10 +166,21 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
-        /* Ajuste do tamanho dos ícones do menu */
+        /* Ícone do menu dentro de um pequeno quadrado arredondado — ganha cor de destaque quando a
+           aba está ativa, inspirado no padrão de referência trazido pelo usuário */
         .tab-btn i {
             width: 16px;
             height: 16px;
+            padding: 5px;
+            border-radius: 8px;
+            box-sizing: content-box;
+            flex-shrink: 0;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .tab-btn.active i {
+            background-color: var(--primary-alpha);
+            color: var(--primary-text);
         }
 
         .theme-toggle {
