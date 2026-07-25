@@ -84,18 +84,15 @@
                 appState.error_notebook.unshift({
                     id: "err-auto-" + Date.now(),
                     timestamp: new Date().toISOString(),
-                    snapshot_subject_name: currentStep.subjectName,
-                    snapshot_topic_title: currentStep.topicTitle,
-                    error_type: "Atenção",
                     subject_id: currentStep.subjectId,
-                    root_cause: "Não Informado",
-                    related_error_id: null,
+                    snapshot_subject_name: currentStep.subjectName,
+                    what_went_wrong: `${currentStep.topicTitle} — ${percentage.toFixed(1)}% de acertos (${correct}/${qty} Q)`,
+                    cause: null,
+                    correct_rule: '',
                     recurrence_count: 0,
                     view_count: 0,
                     last_viewed_at: null,
-                    trigger_percentage: percentage,
-                    user_notes: `Desempenho Crítico: ${percentage.toFixed(1)}% de acertos (${correct}/${qty} Q). Necessário revisar e mapear pegadinhas.`,
-                    imageDataUrl: ""
+                    trigger_percentage: percentage
                 });
             }
 
