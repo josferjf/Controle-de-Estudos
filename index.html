@@ -365,67 +365,35 @@
         <section id="view-errors" class="view-section">
             <div class="card card-danger">
                 <div class="card-title">
-                    <span class="title-text">Caderno de Erros Estratégico & Resumos</span>
+                    <span class="title-text">Caderno de Erros</span>
                     <span class="badge badge-danger">Gatilho Automação &lt; 80%</span>
                 </div>
                 <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-                    Adicione erros manualmente ou utilize o gatilho automático de rendimento. Com suporte completo para inserção de textos e prints/imagens para consulta posterior.
+                    Registre cada erro de forma objetiva — o que errou, por que errou, e a regra certa. Isso vira automaticamente material de revisão ativa.
                 </p>
 
                 <div style="background-color: var(--bg-card); padding: 20px; border-radius: var(--radius-card); border: 1px solid var(--border); margin-bottom: 25px;">
-                    <h4 style="font-size: 14px; margin-bottom: 15px; font-weight:700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="plus" style="width:16px; height:16px;"></i> Adicionar Item ao Resumo de Erros</h4>
+                    <h4 style="font-size: 14px; margin-bottom: 15px; font-weight:700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="plus" style="width:16px; height:16px;"></i> Registrar Novo Erro</h4>
                     <div class="form-group">
-                        <label>Matéria/Tópico de Referência</label>
-                        <input type="text" id="error-manual-title" placeholder="Ex: Direito Administrativo - Atos Administrativos">
-                    </div>
-                    <div class="form-grid-2col">
-                        <div class="form-group">
-                            <label>Matéria Vinculada (Opcional)</label>
-                            <select id="error-manual-subject-link"><option value="">Nenhuma / Não vincular</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Tipo do Erro</label>
-                            <select id="error-manual-type"><option>Lei Seca</option><option>Doutrina</option><option>Jurisprudência</option><option>Interpretação</option><option>Atenção</option></select>
-                        </div>
-                    </div>
-                    <div class="form-grid-2col">
-                        <div class="form-group">
-                            <label>Causa Raiz do Erro</label>
-                            <select id="error-manual-root-cause">
-                                <option value="Não Informado">Não Informado</option>
-                                <option value="Desconhecimento do Conteúdo">Desconhecimento do Conteúdo</option>
-                                <option value="Desatenção na Leitura">Desatenção na Leitura</option>
-                                <option value="Interpretação Equivocada">Interpretação Equivocada</option>
-                                <option value="Pegadinha de Banca">Pegadinha de Banca</option>
-                                <option value="Confusão entre Institutos">Confusão entre Institutos</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Vincular a Erro Anterior (Reincidência)</label>
-                            <select id="error-manual-related"><option value="">Nenhum (erro novo)</option></select>
-                        </div>
-                    </div>
-                    <div class="form-grid-2col">
-                        <div class="form-group">
-                            <label>Banca (Opcional)</label>
-                            <input type="text" id="error-manual-banca" placeholder="Ex: Cebraspe, FGV, FCC...">
-                        </div>
-                        <div class="form-group">
-                            <label>Ano da Prova de Referência (Opcional)</label>
-                            <input type="number" id="error-manual-exam-year" min="1990" max="2100" placeholder="Ex: 2024">
-                        </div>
+                        <label>Matéria (Opcional)</label>
+                        <select id="error-manual-subject-link"><option value="">Nenhuma / Não vincular</option></select>
                     </div>
                     <div class="form-group">
-                        <label>Texto explicativo / Pegadinha da Banca</label>
-                        <textarea id="error-manual-text" rows="3" placeholder="Insira o texto explicativo, lei seca ou resumo do erro aqui..."></textarea>
+                        <label>1. O que eu errei</label>
+                        <input type="text" id="error-manual-what" placeholder="Ex: Troquei prazo de recurso de 5 dias por 10 dias">
                     </div>
                     <div class="form-group">
-                        <label>Adicionar Imagem / Print da Questão</label>
-                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                            <label for="error-manual-image" class="btn" style="width:auto; margin:0;"><i data-lucide="upload"></i> Escolher Arquivo</label>
-                            <input type="file" id="error-manual-image" accept="image/*" class="visually-hidden-file-input" onchange="document.getElementById('error-manual-image-filename').innerText = this.files.length ? this.files[0].name : 'Nenhum arquivo escolhido';">
-                            <span id="error-manual-image-filename" style="font-size:13px; color:var(--text-muted);">Nenhum arquivo escolhido</span>
-                        </div>
+                        <label>2. Por que errei</label>
+                        <select id="error-manual-cause">
+                            <option value="conteudo">Não sabia o conteúdo</option>
+                            <option value="confusao">Confundi dois conceitos</option>
+                            <option value="atencao">Não li com atenção</option>
+                            <option value="pegadinha">Caí numa pegadinha da banca</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>3. A regra certa (com suas palavras)</label>
+                        <textarea id="error-manual-rule" rows="3" placeholder="Escreva a regra certa como se fosse explicar pra você mesmo daqui a 1 mês..."></textarea>
                     </div>
                     <button class="btn btn-danger" onclick="addManualError()"><i data-lucide="save"></i> Gravar no Caderno de Erros</button>
                 </div>
@@ -472,7 +440,7 @@
 
                 <div class="form-grid-4col" style="background-color: var(--bg-input); padding: 15px; border-radius: var(--radius-card); border: 1px solid var(--border); margin-bottom: 20px; align-items: end;">
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Buscar (texto, matéria, banca, ano...)</label>
+                        <label>Buscar (texto, matéria...)</label>
                         <input type="text" id="error-search-input" placeholder="Digite para buscar..." oninput="renderErrorNotebook()">
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
@@ -480,15 +448,14 @@
                         <select id="error-filter-subject" onchange="renderErrorNotebook()"><option value="">Todas</option></select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label>Causa Raiz</label>
+                        <label>Por que errei</label>
                         <select id="error-filter-root-cause" onchange="renderErrorNotebook()">
                             <option value="">Todas</option>
-                            <option value="Não Informado">Não Informado</option>
-                            <option value="Desconhecimento do Conteúdo">Desconhecimento do Conteúdo</option>
-                            <option value="Desatenção na Leitura">Desatenção na Leitura</option>
-                            <option value="Interpretação Equivocada">Interpretação Equivocada</option>
-                            <option value="Pegadinha de Banca">Pegadinha de Banca</option>
-                            <option value="Confusão entre Institutos">Confusão entre Institutos</option>
+                            <option value="conteudo">Não sabia o conteúdo</option>
+                            <option value="confusao">Confundi dois conceitos</option>
+                            <option value="atencao">Não li com atenção</option>
+                            <option value="pegadinha">Caí numa pegadinha da banca</option>
+                            <option value="null">Ainda não classificado</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
