@@ -886,6 +886,11 @@
     display: block;
 }
 
+.topic-actions-menu.open-upward {
+    top: auto;
+    bottom: calc(100% + 4px);
+}
+
 .topic-actions-menu button {
     display: flex;
     align-items: center;
@@ -912,4 +917,18 @@
 
 .topic-actions-menu button:disabled:hover {
     background: none;
+}
+
+/* Input de arquivo nativo escondido visualmente (mas acessível e funcional) — o clique acontece
+   através do <label for="..."> estilizado como botão do site, no lugar do botão feio do navegador */
+.visually-hidden-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
