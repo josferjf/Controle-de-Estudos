@@ -51,7 +51,16 @@
             });
             const menu = document.getElementById(`topic-menu-${topicId}`);
             if (menu) {
+                const isOpening = !menu.classList.contains('open');
                 menu.classList.toggle('open');
+                if (isOpening) {
+                    // Se não sobrar espaço suficiente abaixo do botão (dentro da janela visível),
+                    // o menu abre pra cima em vez de pra baixo — evita ficar atrás do rodapé da tela
+                    const btnRect = event.currentTarget.getBoundingClientRect();
+                    const estimatedMenuHeight = 230;
+                    const spaceBelow = window.innerHeight - btnRect.bottom;
+                    menu.classList.toggle('open-upward', spaceBelow < estimatedMenuHeight);
+                }
                 lucide.createIcons();
             }
         }
