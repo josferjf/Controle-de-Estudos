@@ -512,6 +512,7 @@
 
         .alert-banner.danger { background-color: var(--danger-alpha); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); }
         .alert-banner.warning { background-color: var(--warning-alpha); border: 1px solid rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .alert-banner.success { background-color: var(--success-alpha); border: 1px solid rgba(34, 197, 94, 0.2); color: var(--success); transition: opacity 0.2s ease; }
 
         /* TABELAS PROFISSIONAIS DE BI (PADDINGS E HOVERS REORGANIZADOS) */
         .data-table {
