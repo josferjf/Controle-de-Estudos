@@ -2,65 +2,64 @@
 // CADERNO DE ERROS
 // ============================================================
 
+        // As 4 causas possíveis, cada uma já com a ação sugerida — a causa não é só uma etiqueta,
+        // ela já diz o que fazer a respeito.
+        const ERROR_CAUSES = {
+            conteudo:  { label: 'Não sabia o conteúdo',            action: 'Revisar a teoria desse tópico de novo.',                                  color: '#ef4444' },
+            confusao:  { label: 'Confundi dois conceitos',          action: 'Fazer um quadro comparativo entre os dois conceitos.',                     color: '#f59e0b' },
+            atencao:   { label: 'Não li com atenção',               action: 'Não é sobre conteúdo — treine ritmo e atenção na leitura do enunciado.',   color: '#0891b2' },
+            pegadinha: { label: 'Caí numa pegadinha da banca',      action: 'Grave o padrão dessa armadilha específica pra reconhecer da próxima vez.', color: '#8b5cf6' }
+        };
+
         function addManualError() {
-            const title = document.getElementById('error-manual-title').value.trim();
-            const text = document.getElementById('error-manual-text').value.trim();
-            const fileInput = document.getElementById('error-manual-image');
-            const relatedErrorId = document.getElementById('error-manual-related').value;
-            
-            if (!title || !text) { customAlert("Preencha o título e o texto explicativo!"); return; }
+            const what = document.getElementById('error-manual-what').value.trim();
+            const rule = document.getElementById('error-manual-rule').value.trim();
+            const cause = document.getElementById('error-manual-cause').value;
+            const subjectId = document.getElementById('error-manual-subject-link').value || null;
+
+            if (!what || !rule) { customAlert("Preencha 'O que eu errei' e 'A regra certa'!"); return; }
+
+            const subj = subjectId ? appState.subjects.find(s => s.id === subjectId) : null;
+
+            // Reincidência é detectada automaticamente: se já existe erro na mesma matéria com a
+            // mesma causa, esse novo registro já nasce marcado como reincidência
+            const recurrenceCount = appState.error_notebook.filter(e => e.subject_id === subjectId && e.cause === cause && subjectId).length;
 
             const newError = {
                 id: "err-" + Date.now(),
                 timestamp: new Date().toISOString(),
-                snapshot_subject_name: title,
-                snapshot_topic_title: "Inserção Manual / Resumo",
-                error_type: document.getElementById("error-manual-type").value,
-                subject_id: document.getElementById('error-manual-subject-link').value || null,
-                root_cause: document.getElementById('error-manual-root-cause').value,
-                related_error_id: relatedErrorId || null,
-                recurrence_count: 0,
+                subject_id: subjectId,
+                snapshot_subject_name: subj ? subj.name : "Sem matéria vinculada",
+                what_went_wrong: what,
+                cause: cause,
+                correct_rule: rule,
+                recurrence_count: recurrenceCount,
                 view_count: 0,
-                last_viewed_at: null,
-                banca: document.getElementById('error-manual-banca').value.trim(),
-                exam_year: document.getElementById('error-manual-exam-year').value.trim(),
-                user_notes: text,
-                imageDataUrl: ""
+                last_viewed_at: null
             };
 
-            function finalizeErrorCreation() {
-                appState.error_notebook.unshift(newError);
-                if (relatedErrorId) {
-                    const original = appState.error_notebook.find(e => e.id === relatedErrorId);
-                    if (original) original.recurrence_count = (original.recurrence_count || 0) + 1;
-                }
-                saveToDatabase();
-                updateUI();
-                populateErrorAuxSelects();
-            }
+            appState.error_notebook.unshift(newError);
+            saveToDatabase();
+            updateUI();
+            populateErrorAuxSelects();
+            customAlert("Erro registrado no caderno!");
 
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    newError.imageDataUrl = e.target.result;
-                    finalizeErrorCreation();
-                    customAlert("Sucesso! Erro/Print adicionado com sucesso.");
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                finalizeErrorCreation();
-                customAlert("Sucesso! Erro textual registrado.");
-            }
-
-            document.getElementById('error-manual-title').value = "";
-            document.getElementById('error-manual-text').value = "";
-            document.getElementById('error-manual-banca').value = "";
-            document.getElementById('error-manual-exam-year').value = "";
+            document.getElementById('error-manual-what').value = "";
+            document.getElementById('error-manual-rule').value = "";
             document.getElementById('error-manual-subject-link').value = "";
-            document.getElementById('error-manual-related').value = "";
-            fileInput.value = "";
-            document.getElementById("error-manual-type").selectedIndex=0;
-            document.getElementById("error-manual-root-cause").selectedIndex=0;
+            document.getElementById("error-manual-cause").selectedIndex = 0;
+        }
+
+        // Classifica a causa de um erro que ainda não tinha sido classificado (ex: gerado automaticamente
+        // pelo gatilho de baixo rendimento) — aparece como um mini-formulário direto no card
+        function classifyErrorCause(errorId, cause) {
+            const err = appState.error_notebook.find(e => e.id === errorId);
+            if (!err) return;
+            err.cause = cause;
+            err.recurrence_count = appState.error_notebook.filter(e => e.subject_id === err.subject_id && e.cause === cause && e.id !== err.id && err.subject_id).length;
+            saveToDatabase();
+            renderErrorNotebook();
+            renderErrorDashboard();
         }
 
         // --- MELHORIA 1: EXCLUSÃO UNITÁRIA DO CADERNO DE ERROS ---
@@ -89,12 +88,6 @@
                 filterSubjectSelect.innerHTML = '<option value="">Todas</option>' +
                     appState.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
                 filterSubjectSelect.value = currentVal;
-            }
-
-            const relatedSelect = document.getElementById('error-manual-related');
-            if (relatedSelect) {
-                relatedSelect.innerHTML = '<option value="">Nenhum (erro novo)</option>' +
-                    appState.error_notebook.map(e => `<option value="${e.id}">${e.snapshot_subject_name} - ${new Date(e.timestamp).toLocaleDateString('pt-BR')}</option>`).join('');
             }
         }
 
@@ -129,10 +122,13 @@
 
             let list = appState.error_notebook.filter(err => {
                 if (subjectId && err.subject_id !== subjectId) return false;
-                if (rootCause && (err.root_cause || "Não Informado") !== rootCause) return false;
+                if (rootCause) {
+                    const causeVal = rootCause === 'null' ? null : rootCause;
+                    if (err.cause !== causeVal) return false;
+                }
                 if (onlyUnreviewed && (err.view_count || 0) > 0) return false;
                 if (searchTerm) {
-                    const haystack = `${err.snapshot_subject_name} ${err.snapshot_topic_title} ${err.user_notes} ${err.banca || ''} ${err.exam_year || ''} ${err.error_type || ''}`.toLowerCase();
+                    const haystack = `${err.snapshot_subject_name} ${err.what_went_wrong} ${err.correct_rule}`.toLowerCase();
                     if (!haystack.includes(searchTerm)) return false;
                 }
                 return true;
@@ -182,26 +178,38 @@
                     ? `Revisado ${err.view_count}x • Última vez: ${new Date(err.last_viewed_at).toLocaleDateString('pt-BR')}`
                     : 'Nunca revisado desde o cadastro';
 
+                const causeInfo = err.cause ? ERROR_CAUSES[err.cause] : null;
+                const causeBlock = causeInfo
+                    ? `<div style="display:flex; align-items:flex-start; gap:8px; background:var(--bg-input); border-radius:var(--radius-interactive); padding:10px 12px; margin-bottom:10px;">
+                           <i data-lucide="lightbulb" style="width:14px; height:14px; color:${causeInfo.color}; flex-shrink:0; margin-top:2px;"></i>
+                           <div><strong style="color:${causeInfo.color}; font-size:13px;">${causeInfo.label}</strong><br><small style="color:var(--text-muted);">${causeInfo.action}</small></div>
+                       </div>`
+                    : `<div style="background:var(--warning-alpha); border-radius:var(--radius-interactive); padding:10px 12px; margin-bottom:10px;">
+                           <small style="color:var(--warning); font-weight:600; display:block; margin-bottom:6px;">Ainda não classificado — por que você errou?</small>
+                           <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                               ${Object.entries(ERROR_CAUSES).map(([key, c]) => `<button class="filter-chip" style="padding:4px 8px; background:var(--bg-card); font-size:11px;" onclick="classifyErrorCause('${err.id}','${key}')">${c.label}</button>`).join('')}
+                           </div>
+                       </div>`;
+
                 const card = document.createElement('div');
                 card.className = "error-card-modern";
                 card.style.borderColor = borderColor;
                 card.innerHTML = `
                     <button class="filter-chip" style="position: absolute; top: 14px; right: 14px; background: var(--danger-alpha); color: var(--danger); padding: 4px 8px; font-size: 11px;" onclick="deleteErrorItem('${err.id}')"><i data-lucide="trash-2" style="width:13px; height:13px; vertical-align: middle;"></i> Excluir</button>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding-right: 70px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; padding-right: 70px;">
                         <strong style="color:${titleColor};">${err.snapshot_subject_name}</strong>
                         <small style="color:var(--text-muted);">${new Date(err.timestamp).toLocaleDateString()}</small>
                     </div>
-                    <div style="color:var(--text-muted); font-size:12px; margin-bottom:4px;">Referência: ${err.snapshot_topic_title}</div>
+                    <p style="font-size:14px; font-weight:600; margin-bottom:10px;">${err.what_went_wrong}</p>
+                    ${causeBlock}
                     <div style="margin-bottom:10px; display:flex; flex-wrap:wrap; gap:6px;">
-                        <span class="badge badge-purple">${err.error_type||"Não informado"}</span>
-                        <span class="badge badge-purple">${err.root_cause || "Não Informado"}</span>
-                        ${err.banca ? `<span class="badge badge-purple">Banca: ${err.banca}</span>` : ''}
-                        ${err.exam_year ? `<span class="badge badge-purple">Prova ${err.exam_year}</span>` : ''}
                         ${criticalityBadge}
                         ${recurrenceBadge}
                     </div>
-                    <p style="font-size:14px; white-space:pre-wrap;">${err.user_notes}</p>
-                    ${err.imageDataUrl ? `<div class="error-media-preview"><img src="${err.imageDataUrl}" class="error-img-render" onclick="window.open(this.src)"></div>` : ''}
+                    <div style="border-left: 3px solid var(--success); padding-left: 10px;">
+                        <small style="color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.3px;">A regra certa</small>
+                        <p style="font-size:14px; white-space:pre-wrap; margin-top:2px;">${err.correct_rule || '<span style="color:var(--text-muted);">Ainda não preenchida.</span>'}</p>
+                    </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top: 1px solid var(--border);">
                         <small style="color:var(--text-muted); font-size:11px;">${reviewInfo}</small>
                         <button class="filter-chip" style="padding: 4px 10px; background: var(--primary-alpha); color: var(--primary-text); font-size: 11px;" onclick="markErrorAsReviewed('${err.id}')"><i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> Marcar como Revisado</button>
@@ -240,8 +248,8 @@
 
             const rootCauseMap = {};
             errors.forEach(e => {
-                const rc = e.root_cause || "Não Informado";
-                rootCauseMap[rc] = (rootCauseMap[rc] || 0) + 1;
+                const label = e.cause ? ERROR_CAUSES[e.cause].label : "Não classificado";
+                rootCauseMap[label] = (rootCauseMap[label] || 0) + 1;
             });
             const rootCauseCanvas = document.getElementById('canvas-errors-rootcause');
             if (rootCauseCanvas) {
@@ -327,16 +335,16 @@
             const err = list[index];
             const criticality = getErrorCriticality(err);
             const titleColor = criticality === 'alta' ? 'var(--danger)' : (criticality === 'media' ? 'var(--warning)' : 'var(--text-main)');
+            const causeInfo = err.cause ? ERROR_CAUSES[err.cause] : null;
             document.getElementById('flashcard-progress').innerText = `${index + 1} / ${list.length}`;
 
             const contentEl = document.getElementById('flashcard-content');
             if (!revealed) {
                 contentEl.innerHTML = `
                     <div style="text-align:center; padding: 30px 10px;">
-                        <span class="badge badge-purple" style="margin-bottom: 15px; display:inline-block;">${err.error_type || "Não informado"}</span>
-                        <h3 style="margin-bottom: 10px;">${err.snapshot_subject_name}</h3>
-                        <p style="color: var(--text-muted); font-size: 13px;">${err.snapshot_topic_title}</p>
-                        <p style="margin-top: 20px; font-size: 13px; color: var(--text-muted);">Tente lembrar o que você errou e por quê antes de revelar.</p>
+                        <strong style="color:${titleColor}; display:block; margin-bottom: 10px;">${err.snapshot_subject_name}</strong>
+                        <h3 style="margin-bottom: 10px;">${err.what_went_wrong}</h3>
+                        <p style="margin-top: 20px; font-size: 13px; color: var(--text-muted);">Tente lembrar a regra certa antes de revelar.</p>
                     </div>
                 `;
                 document.getElementById('flashcard-reveal-btn').innerText = "Revelar Resposta";
@@ -347,12 +355,12 @@
                             <strong style="color:${titleColor};">${err.snapshot_subject_name}</strong>
                             <small style="color:var(--text-muted);">${new Date(err.timestamp).toLocaleDateString()}</small>
                         </div>
-                        <div style="margin-bottom:10px; display:flex; flex-wrap:wrap; gap:6px;">
-                            <span class="badge badge-purple">${err.error_type||"Não informado"}</span>
-                            <span class="badge badge-purple">${err.root_cause || "Não Informado"}</span>
+                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">${err.what_went_wrong}</p>
+                        ${causeInfo ? `<div style="display:flex; align-items:flex-start; gap:8px; background:var(--bg-input); border-radius:var(--radius-interactive); padding:10px 12px; margin-bottom:14px;"><i data-lucide="lightbulb" style="width:14px; height:14px; color:${causeInfo.color}; flex-shrink:0; margin-top:2px;"></i><div><strong style="color:${causeInfo.color}; font-size:13px;">${causeInfo.label}</strong><br><small style="color:var(--text-muted);">${causeInfo.action}</small></div></div>` : ''}
+                        <div style="border-left: 3px solid var(--success); padding-left: 10px;">
+                            <small style="color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.3px;">A regra certa</small>
+                            <p style="font-size:14px; white-space:pre-wrap; margin-top:2px;">${err.correct_rule || '<span style="color:var(--text-muted);">Ainda não preenchida.</span>'}</p>
                         </div>
-                        <p style="font-size:14px; white-space:pre-wrap;">${err.user_notes}</p>
-                        ${err.imageDataUrl ? `<div class="error-media-preview"><img src="${err.imageDataUrl}" class="error-img-render" onclick="window.open(this.src)"></div>` : ''}
                     </div>
                 `;
                 document.getElementById('flashcard-reveal-btn').innerText = "Ocultar Resposta";
@@ -387,17 +395,20 @@
             }
 
             const printWindow = window.open('', '_blank');
-            const rows = list.map(err => `
+            const rows = list.map(err => {
+                const causeInfo = err.cause ? ERROR_CAUSES[err.cause] : null;
+                return `
                 <div style="border: 1px solid #ccc; border-radius: 8px; padding: 14px; margin-bottom: 14px; page-break-inside: avoid;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                         <strong>${err.snapshot_subject_name}</strong>
                         <span>${new Date(err.timestamp).toLocaleDateString('pt-BR')}</span>
                     </div>
-                    <div style="font-size:12px; color:#555; margin-bottom:4px;">Referência: ${err.snapshot_topic_title}</div>
-                    <div style="font-size:11px; color:#555; margin-bottom:8px;">Tipo: ${err.error_type || "Não informado"} | Causa Raiz: ${err.root_cause || "Não Informado"} ${err.banca ? `| Banca: ${err.banca}` : ''} ${err.exam_year ? `| Prova ${err.exam_year}` : ''}</div>
-                    <p style="font-size:13px; white-space:pre-wrap;">${err.user_notes}</p>
+                    <p style="font-size:13px; font-weight:bold; margin-bottom:6px;">${err.what_went_wrong}</p>
+                    <div style="font-size:11px; color:#555; margin-bottom:8px;">Por que errei: ${causeInfo ? causeInfo.label : "Não classificado"}</div>
+                    <p style="font-size:13px; white-space:pre-wrap;"><strong>Regra certa:</strong> ${err.correct_rule || '-'}</p>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             printWindow.document.write(`
                 <html>
