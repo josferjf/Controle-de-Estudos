@@ -335,7 +335,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-soft) 100%);
+            background-color: var(--primary);
             color: var(--header-text);
             font-weight: 600;
             font-size: var(--fs-base);
