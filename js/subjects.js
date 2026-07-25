@@ -202,7 +202,7 @@
                         <button class="filter-chip" style="padding: 5px 10px; background: var(--primary-alpha); color: var(--primary-text); font-size: 11px;" onclick="toggleSubjectTopicsExpanded('${s.id}')"><i data-lucide="${isExpanded ? 'chevron-up' : 'list'}" style="width:12px; height:12px; vertical-align:middle;"></i> ${isExpanded ? 'Ocultar Aulas' : 'Ver/Gerenciar Aulas'}</button>
                     </div>
                     ${isExpanded ? `
-                        <div style="margin-top:12px; padding-top:12px; border-top: 1px solid var(--border); overflow-x:hidden; max-width:100%;">
+                        <div style="margin-top:12px; padding-top:12px; border-top: 1px solid var(--border); overflow-x:hidden; overflow-y:visible; max-width:100%;">
                             ${topicsHtml}
                             <div style="display:flex; gap:8px; margin-top:10px;">
                                 <input type="text" id="new-topic-input-${s.id}" placeholder="Nova aula/tópico..." style="flex:1;">
