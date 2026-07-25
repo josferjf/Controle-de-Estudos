@@ -142,13 +142,26 @@ function applyBackwardCompatibilityMigrations() {
         if (s.last_tudao_review_date === undefined) s.last_tudao_review_date = null;
         s.topics.forEach(t => { if (t.link === undefined) t.link = ''; if (t.materialLink === undefined) t.materialLink = ''; });
     });
+    const OLD_ROOT_CAUSE_MAP = {
+        "Desconhecimento do Conteúdo": "conteudo",
+        "Desatenção na Leitura": "atencao",
+        "Interpretação Equivocada": "confusao",
+        "Pegadinha de Banca": "pegadinha",
+        "Confusão entre Institutos": "confusao"
+    };
     appState.error_notebook.forEach(err => {
         if (err.subject_id === undefined) err.subject_id = null;
-        if (err.root_cause === undefined) err.root_cause = "Não Informado";
-        if (err.related_error_id === undefined) err.related_error_id = null;
         if (err.recurrence_count === undefined) err.recurrence_count = 0;
         if (err.view_count === undefined) err.view_count = 0;
         if (err.last_viewed_at === undefined) err.last_viewed_at = null;
+        // Migração pro modelo simplificado: o que eu errei / por que errei / a regra certa
+        if (err.what_went_wrong === undefined) {
+            err.what_went_wrong = (err.snapshot_topic_title && err.snapshot_topic_title !== "Inserção Manual / Resumo")
+                ? err.snapshot_topic_title
+                : "Erro registrado";
+        }
+        if (err.correct_rule === undefined) err.correct_rule = err.user_notes || '';
+        if (err.cause === undefined) err.cause = OLD_ROOT_CAUSE_MAP[err.root_cause] || null;
     });
     if (appState.timer_state.pomodoro_phase === undefined) appState.timer_state.pomodoro_phase = 'focus';
     if (appState.timer_state.pomodoro_cycle_count === undefined) appState.timer_state.pomodoro_cycle_count = 0;
