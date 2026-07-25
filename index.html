@@ -16,68 +16,68 @@
 </head>
 <body>
 
-    <div id="login-screen" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
-        <div class="card card-primary" style="max-width: 400px; width: 100%;">
-            <div style="text-align: center; margin-bottom: 25px;">
-                <div style="background: var(--header-bg); border-radius: var(--radius-card); padding: 20px; margin-bottom: 12px; display: inline-block;">
-                    <img src="assets/logo-full.png" alt="Controle de Estudos" style="max-width: 200px; width: 100%; height: auto; display:block;">
-                </div>
-                <p style="color: var(--text-muted); font-size: 13px;">Seu sistema pessoal de preparação para concursos</p>
+    <div id="login-screen" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--header-bg);">
+        <div style="max-width: 400px; width: 100%;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="assets/logo-horizontal.png" alt="Controle de Estudos" style="max-width: 320px; width: 100%; height: auto; margin-bottom: 14px;">
+                <p style="color: rgba(255,255,255,0.65); font-size: 13px;">Seu sistema pessoal de preparação para concursos</p>
             </div>
 
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-card); padding: 30px;">
             <div id="login-form-view">
                 <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" id="login-email" placeholder="seu@email.com">
+                    <label style="color: rgba(255,255,255,0.85);">E-mail</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); color: #fff;">
                 </div>
                 <div class="form-group">
-                    <label>Senha</label>
-                    <input type="password" id="login-password" placeholder="••••••••">
+                    <label style="color: rgba(255,255,255,0.85);">Senha</label>
+                    <input type="password" id="login-password" placeholder="••••••••" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); color: #fff;">
                 </div>
                 <button class="btn" style="width: 100%;" onclick="handleLoginSubmit()"><i data-lucide="log-in"></i> Entrar</button>
-                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
-                    Não tem conta? <a href="#" onclick="showSignupView(); return false;" style="color: var(--primary-text);">Criar conta</a>
+                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: rgba(255,255,255,0.65);">
+                    Não tem conta? <a href="#" onclick="showSignupView(); return false;" style="color: #fff; font-weight:600;">Criar conta</a>
                 </p>
-                <p style="text-align: center; font-size: 13px; margin-top: 8px; color: var(--text-muted);">
-                    <a href="#" onclick="showForgotPasswordView(); return false;" style="color: var(--text-muted);">Esqueci minha senha</a>
+                <p style="text-align: center; font-size: 13px; margin-top: 8px;">
+                    <a href="#" onclick="showForgotPasswordView(); return false;" style="color: rgba(255,255,255,0.65);">Esqueci minha senha</a>
                 </p>
             </div>
 
             <div id="signup-form-view" style="display: none;">
                 <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" id="signup-email" placeholder="seu@email.com">
+                    <label style="color: rgba(255,255,255,0.85);">E-mail</label>
+                    <input type="email" id="signup-email" placeholder="seu@email.com" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); color: #fff;">
                 </div>
                 <div class="form-group">
-                    <label>Senha (mínimo 6 caracteres)</label>
-                    <input type="password" id="signup-password" placeholder="••••••••">
+                    <label style="color: rgba(255,255,255,0.85);">Senha (mínimo 6 caracteres)</label>
+                    <input type="password" id="signup-password" placeholder="••••••••" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); color: #fff;">
                 </div>
                 <div class="form-group">
-                    <label>Confirmar Senha</label>
-                    <input type="password" id="signup-password-confirm" placeholder="••••••••">
+                    <label style="color: rgba(255,255,255,0.85);">Confirmar Senha</label>
+                    <input type="password" id="signup-password-confirm" placeholder="••••••••" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); color: #fff;">
                 </div>
                 <button class="btn btn-warning" style="width: 100%;" onclick="handleSignupSubmit()"><i data-lucide="user-plus"></i> Criar Conta</button>
-                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
-                    Já tem conta? <a href="#" onclick="showLoginView(); return false;" style="color: var(--primary-text);">Entrar</a>
+                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: rgba(255,255,255,0.65);">
+                    Já tem conta? <a href="#" onclick="showLoginView(); return false;" style="color: #fff; font-weight:600;">Entrar</a>
                 </p>
             </div>
 
             <div id="forgot-password-view" style="display: none;">
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                <p style="font-size: 13px; color: rgba(255,255,255,0.65); margin-bottom: 15px;">
                     Informe o e-mail da sua conta. Vamos enviar um link para você criar uma nova senha.
                 </p>
                 <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" id="forgot-password-email" placeholder="seu@email.com">
+                    <label style="color: rgba(255,255,255,0.85);">E-mail</label>
+                    <input type="email" id="forgot-password-email" placeholder="seu@email.com" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); color: #fff;">
                 </div>
                 <button class="btn" style="width: 100%;" onclick="handleForgotPasswordSubmit()"><i data-lucide="send"></i> Enviar Link de Recuperação</button>
-                <p style="text-align: center; font-size: 13px; margin-top: 15px; color: var(--text-muted);">
-                    <a href="#" onclick="showLoginView(); return false;" style="color: var(--primary-text);">Voltar para o login</a>
+                <p style="text-align: center; font-size: 13px; margin-top: 15px;">
+                    <a href="#" onclick="showLoginView(); return false;" style="color: #fff; font-weight:600;">Voltar para o login</a>
                 </p>
             </div>
 
-            <div id="login-error-msg" style="display: none; margin-top: 15px; padding: 10px; background: var(--danger-alpha); color: var(--danger); border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
-            <div id="login-success-msg" style="display: none; margin-top: 15px; padding: 10px; background: var(--primary-alpha); color: var(--primary); border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
+            <div id="login-error-msg" style="display: none; margin-top: 15px; padding: 10px; background: rgba(239,68,68,0.15); color: #fca5a5; border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
+            <div id="login-success-msg" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.08); color: #fff; border-radius: var(--radius-interactive); font-size: 13px; text-align: center;"></div>
+            </div>
         </div>
     </div>
 
@@ -372,7 +372,7 @@
                     Adicione erros manualmente ou utilize o gatilho automático de rendimento. Com suporte completo para inserção de textos e prints/imagens para consulta posterior.
                 </p>
 
-                <div style="background-color: var(--bg-input); padding: 20px; border-radius: var(--radius-card); border: 1px solid var(--border); margin-bottom: 25px;">
+                <div style="background-color: var(--bg-card); padding: 20px; border-radius: var(--radius-card); border: 1px solid var(--border); margin-bottom: 25px;">
                     <h4 style="font-size: 14px; margin-bottom: 15px; font-weight:700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="plus" style="width:16px; height:16px;"></i> Adicionar Item ao Resumo de Erros</h4>
                     <div class="form-group">
                         <label>Matéria/Tópico de Referência</label>
