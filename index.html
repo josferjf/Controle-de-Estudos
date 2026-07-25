@@ -421,7 +421,11 @@
                     </div>
                     <div class="form-group">
                         <label>Adicionar Imagem / Print da Questão</label>
-                        <input type="file" id="error-manual-image" accept="image/*" style="padding: 8px;">
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                            <label for="error-manual-image" class="btn btn-secondary" style="width:auto; margin:0;"><i data-lucide="upload"></i> Escolher Arquivo</label>
+                            <input type="file" id="error-manual-image" accept="image/*" class="visually-hidden-file-input" onchange="document.getElementById('error-manual-image-filename').innerText = this.files.length ? this.files[0].name : 'Nenhum arquivo escolhido';">
+                            <span id="error-manual-image-filename" style="font-size:13px; color:var(--text-muted);">Nenhum arquivo escolhido</span>
+                        </div>
                     </div>
                     <button class="btn btn-danger" onclick="addManualError()"><i data-lucide="save"></i> Gravar no Caderno de Erros</button>
                 </div>
