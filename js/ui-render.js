@@ -16,6 +16,22 @@
             updateUI();
         }
 
+        // Dá retorno visual imediato ao marcar "Já revisei" — o aviso não some (o contexto de qual
+        // bloco revisar continua útil), mas muda de "alerta laranja" pra "confirmado em verde"
+        function toggleQuickReviewConfirmed(checkbox) {
+            const banner = document.getElementById('quick-review-banner');
+            if (!banner) return;
+            if (checkbox.checked) {
+                banner.classList.remove('warning');
+                banner.classList.add('success');
+                banner.style.opacity = '0.7';
+            } else {
+                banner.classList.remove('success');
+                banner.classList.add('warning');
+                banner.style.opacity = '1';
+            }
+        }
+
         function updateUI() {
             const count = appState.error_notebook.length;
             const badge = document.getElementById('error-badge-count');
@@ -48,9 +64,9 @@
                 if (currentStep.pilar === 1) {
                     const boostBadge = currentStep.priorityBoosted ? `<span class="badge badge-warning" style="margin-left:8px;">Prioridade elevada (desempenho abaixo da meta)</span>` : '';
                     alertZone.innerHTML = `
-                        <div class="alert-banner warning" style="margin: 0;"><i data-lucide="info"></i> <span><strong>Pilar 1 - Revisão Rápida:</strong> Dedique de 5 a 10 min para rever as anotações do bloco anterior.${boostBadge}</span></div>
+                        <div class="alert-banner warning" id="quick-review-banner" style="margin: 0;"><i data-lucide="info"></i> <span><strong>Pilar 1 - Revisão Rápida:</strong> Dedique de 5 a 10 min para rever as anotações do bloco anterior.${boostBadge}</span></div>
                         <label style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:13px; cursor:pointer; color: var(--text-muted);">
-                            <input type="checkbox" id="quick-review-checkbox" style="width:16px; height:16px; cursor:pointer;"> Já revisei rapidamente o bloco anterior
+                            <input type="checkbox" id="quick-review-checkbox" style="width:16px; height:16px; cursor:pointer;" onchange="toggleQuickReviewConfirmed(this)"> Já revisei rapidamente o bloco anterior
                         </label>
                     `;
                 } else if (currentStep.pilar === 2 || currentStep.pilar === 3) {
