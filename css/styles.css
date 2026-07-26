@@ -957,6 +957,10 @@
     color: #ffffff;
 }
 
+:root[data-theme="dark"] .mode-chip.active[data-mode="regular"] {
+    color: #ffffff;
+}
+
 /* Botões do cronômetro (Iniciar/Reiniciar/Pular) — antes dependiam só do espaço em branco padrão
    do HTML entre os botões, o que ficava apertado. Agora tem um espaçamento garantido e consistente. */
 .timer-controls {
