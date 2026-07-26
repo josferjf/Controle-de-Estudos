@@ -245,12 +245,6 @@
                 weeklyGoalsCountEl.innerText = `Metas desta semana: ${Math.round(weeklyHoursGoal)} (1 meta = 1 hora de estudo)`;
             }
 
-            const streakEl = document.getElementById('focus-streak-badge');
-            if (streakEl) {
-                const streak = computeStudyStreak();
-                streakEl.innerText = `🔥 ${streak} dia(s) seguido(s)`;
-            }
-
             const diagnoseTbody = document.getElementById('diagnose-table-body');
             diagnoseTbody.innerHTML = "";
             
@@ -575,31 +569,6 @@
         // --- MELHORIA 2: FLUXOS COMPLETOS PARA EDIÇÃO E EXCLUSÃO UNITÁRIA DE DISCIPLINAS ---
         // --- CADASTRO DE MATÉRIAS: RENDERIZAÇÃO COM PROGRESSO, % DO EDITAL, ATIVO/PAUSADO E TÓPICOS INDIVIDUAIS ---
         let expandedSubjectIds = new Set();
-
-        function computeStudyStreak() {
-            const hoursByDate = {};
-            appState.study_logs.forEach(l => {
-                const key = toLocalDateKey(new Date(l.timestamp));
-                hoursByDate[key] = (hoursByDate[key] || 0) + l.liquid_seconds;
-            });
-
-            let streak = 0;
-            let cursor = new Date(); cursor.setHours(0, 0, 0, 0);
-            const todayKey = toLocalDateKey(cursor);
-            if (!hoursByDate[todayKey]) {
-                cursor.setDate(cursor.getDate() - 1);
-            }
-            while (true) {
-                const key = toLocalDateKey(cursor);
-                if (hoursByDate[key] && hoursByDate[key] > 0) {
-                    streak++;
-                    cursor.setDate(cursor.getDate() - 1);
-                } else {
-                    break;
-                }
-            }
-            return streak;
-        }
 
         function renderConsistencyHeatmap() {
             const container = document.getElementById('consistency-heatmap-container');
