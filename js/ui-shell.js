@@ -22,6 +22,17 @@
             lucide.createIcons();
         }
 
+        // Menu lateral do celular: abre/fecha a gaveta + fundo escurecido
+        function toggleMobileMenu() {
+            document.getElementById('mobile-nav-drawer').classList.toggle('open');
+            document.getElementById('mobile-nav-backdrop').classList.toggle('open');
+        }
+
+        function closeMobileMenu() {
+            document.getElementById('mobile-nav-drawer').classList.remove('open');
+            document.getElementById('mobile-nav-backdrop').classList.remove('open');
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
