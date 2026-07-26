@@ -13,8 +13,8 @@
             --primary-alpha: rgba(60, 9, 108, 0.3);
             --primary-soft: #7b2cbf;
             --primary-text: #b980f0;
-            --header-bg: #0d0d10;
-            --header-bg-soft: #1a1a1f;
+            --header-bg: #130719;
+            --header-bg-soft: #241130;
         }
 
         :root[data-theme="light"] {
