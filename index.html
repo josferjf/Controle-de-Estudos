@@ -84,6 +84,9 @@
     <div id="app-shell" style="display: none;">
     <header>
         <div class="header-container">
+            <button class="mobile-menu-trigger" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i data-lucide="menu"></i>
+            </button>
             <div class="logo">
                 <img src="assets/logo-horizontal.png" alt="Controle de Estudos" style="height: 44px; width: auto;">
             </div>
@@ -102,6 +105,22 @@
             </div>
         </div>
     </header>
+
+    <!-- Menu lateral exclusivo do celular: um botão hambúrguer abre uma gaveta com os itens em lista
+         vertical (alvo de toque grande), em vez da barra horizontal apertada de rolar com o dedo -->
+    <div id="mobile-nav-backdrop" class="mobile-nav-backdrop" onclick="closeMobileMenu()"></div>
+    <nav id="mobile-nav-drawer" class="mobile-nav-drawer">
+        <div class="mobile-nav-drawer-header">
+            <span>Menu</span>
+            <button onclick="closeMobileMenu()" aria-label="Fechar menu"><i data-lucide="x"></i></button>
+        </div>
+        <button class="mobile-nav-item" onclick="switchTab('focus'); closeMobileMenu();"><i data-lucide="timer"></i> Modo Foco</button>
+        <button class="mobile-nav-item" onclick="switchTab('config'); closeMobileMenu();"><i data-lucide="sliders"></i> Cadastro</button>
+        <button class="mobile-nav-item" onclick="switchTab('errors'); closeMobileMenu();"><i data-lucide="alert-triangle"></i> Caderno de Erros <span id="error-badge-count-mobile" class="badge badge-danger" style="display:none; padding: 2px 6px; margin-left:auto;">0</span></button>
+        <button class="mobile-nav-item" onclick="switchTab('stats'); closeMobileMenu();"><i data-lucide="trending-up"></i> Evolução</button>
+        <button class="mobile-nav-item" onclick="switchTab('simulados'); closeMobileMenu();"><i data-lucide="clipboard-check"></i> Simulados</button>
+        <button class="mobile-nav-item" onclick="switchTab('backup'); closeMobileMenu();"><i data-lucide="database"></i> Backup/Dados</button>
+    </nav>
 
     <main>
         <div id="global-alert-zone"></div>
