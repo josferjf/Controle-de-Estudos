@@ -395,7 +395,7 @@
             font-variant-numeric: tabular-nums;
             font-size: var(--fs-display);
             font-weight: 700;
-            color: var(--primary);
+            color: var(--primary-text);
             letter-spacing: -1px;
             margin-bottom: 10px;
         }
@@ -435,7 +435,7 @@
 
         .mode-chip.active[data-mode="regular"] {
             background-color: var(--primary-alpha);
-            color: var(--primary);
+            color: var(--primary-text);
             border-color: var(--primary);
         }
 
@@ -576,7 +576,7 @@
             letter-spacing: -0.5px;
         }
         
-        .stat-value.green { color: var(--primary); }
+        .stat-value.green { color: var(--primary-text); }
         .stat-value.orange { color: var(--warning); }
         .stat-value.red { color: var(--danger); }
         .stat-value.purple { color: var(--text-main); }
