@@ -501,15 +501,16 @@
             padding: var(--space-3) var(--space-4);
             margin-bottom: var(--space-6);
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: var(--space-2);
             font-size: var(--fs-base);
         }
 
         .alert-banner i {
+            flex-shrink: 0;
+            margin-top: 2px;
             width: 16px;
             height: 16px;
-            flex-shrink: 0;
         }
 
         .alert-banner.danger { background-color: var(--danger-alpha); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); }
@@ -798,10 +799,19 @@
             }
 
             .logo img {
-                height: 32px !important;
+                height: 26px !important;
+                max-width: 150px !important;
+                width: auto !important;
+                object-fit: contain;
+            }
+
+            .header-icons {
+                flex-shrink: 0;
             }
 
             .nav-tabs {
+                flex: 1;
+                min-width: 0;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
@@ -815,7 +825,11 @@
             .tab-btn {
                 white-space: nowrap;
                 flex-shrink: 0;
-                padding: 8px 12px;
+                padding: 8px 10px;
+            }
+
+            .tab-btn .tab-label {
+                display: none;
             }
 
             /* Mais espaço útil de tela: reduz as margens laterais do container principal */
@@ -940,4 +954,20 @@
 
 :root[data-theme="dark"] .topic-link-btn {
     color: #ffffff;
+}
+
+/* Botões do cronômetro (Iniciar/Reiniciar/Pular) — antes dependiam só do espaço em branco padrão
+   do HTML entre os botões, o que ficava apertado. Agora tem um espaçamento garantido e consistente. */
+.timer-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+@media (max-width: 640px) {
+    .timer-controls .btn {
+        flex: 1 1 auto;
+        min-width: 100px;
+    }
 }
