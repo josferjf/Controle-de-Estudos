@@ -8,11 +8,11 @@
             --text-muted: #a1a1aa;
             --card-shadow: rgba(0, 0, 0, 0.5);
             --header-text: #ffffff;
-            --primary: #8b5cf6;
-            --primary-hover: #7c3aed;
-            --primary-alpha: rgba(139, 92, 246, 0.18);
-            --primary-soft: #a78bfa;
-            --primary-text: #a78bfa;
+            --primary: #3c096c;
+            --primary-hover: #560f96;
+            --primary-alpha: rgba(60, 9, 108, 0.3);
+            --primary-soft: #7b2cbf;
+            --primary-text: #b980f0;
             --header-bg: #0d0d10;
             --header-bg-soft: #1a1a1f;
         }
