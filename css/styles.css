@@ -927,3 +927,17 @@
     white-space: nowrap;
     border: 0;
 }
+
+/* Textos em branco no modo escuro (cronômetro e botões de link do tópico) — no modo claro
+   continuam com a cor de destaque (azul-marinho), que já funcionava bem lá */
+.topic-link-btn {
+    color: var(--primary-text);
+}
+
+:root[data-theme="dark"] .timer-display {
+    color: #ffffff;
+}
+
+:root[data-theme="dark"] .topic-link-btn {
+    color: #ffffff;
+}
