@@ -59,12 +59,12 @@
                 const topicLinkContainer = document.getElementById('focus-topic-link-container');
                 let linkButtonsHtml = '';
                 if (currentStep.topicLink) {
-                    linkButtonsHtml += `<a href="${currentStep.topicLink}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding: 6px 12px; background: var(--primary-alpha); text-decoration:none; font-size:12px;"><i data-lucide="link" style="width:12px; height:12px;"></i>&nbsp;Caderno de Questões</a>`;
+                    linkButtonsHtml += `<a href="${currentStep.topicLink}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding: 10px 18px; background: var(--primary-alpha); text-decoration:none; font-size:15px;"><i data-lucide="link" style="width:16px; height:16px;"></i>&nbsp;Caderno de Questões</a>`;
                 }
                 if (currentStep.topicMaterialLink) {
-                    linkButtonsHtml += `<a href="${currentStep.topicMaterialLink}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding: 6px 12px; background: var(--primary-alpha); text-decoration:none; font-size:12px;"><i data-lucide="book-open" style="width:12px; height:12px;"></i>&nbsp;Material Teórico</a>`;
+                    linkButtonsHtml += `<a href="${currentStep.topicMaterialLink}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding: 10px 18px; background: var(--primary-alpha); text-decoration:none; font-size:15px;"><i data-lucide="book-open" style="width:16px; height:16px;"></i>&nbsp;Material Teórico</a>`;
                 }
-                topicLinkContainer.innerHTML = linkButtonsHtml ? `<div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">${linkButtonsHtml}</div>` : '';
+                topicLinkContainer.innerHTML = linkButtonsHtml ? `<div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-start;">${linkButtonsHtml}</div>` : '';
                 
                 const alertZone = document.getElementById('review-alert-indicator');
                 if (currentStep.pilar === 1) {
