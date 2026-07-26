@@ -864,6 +864,7 @@
             /* Tabelas de dados: fonte um pouco menor pra caber mais coluna na largura disponível */
             .data-table {
                 font-size: var(--fs-xs);
+                min-width: 560px;
             }
 
             /* Modais e diálogos: menos padding lateral, aproveitando melhor a largura da tela */
@@ -969,5 +970,104 @@
     .timer-controls .btn {
         flex: 1 1 auto;
         min-width: 100px;
+    }
+}
+
+/* ============================================================
+   MENU LATERAL EXCLUSIVO DO CELULAR (gaveta com toque grande)
+   ============================================================ */
+.mobile-menu-trigger {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--header-text);
+    padding: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.mobile-nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.mobile-nav-backdrop.open {
+    display: block;
+    opacity: 1;
+}
+
+.mobile-nav-drawer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78vw;
+    max-width: 300px;
+    background-color: var(--bg-card);
+    z-index: 301;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+}
+
+.mobile-nav-drawer.open {
+    display: block;
+    transform: translateX(0);
+}
+
+.mobile-nav-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.mobile-nav-drawer-header button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.mobile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.mobile-nav-item:active {
+    background-color: var(--bg-input);
+}
+
+@media (max-width: 640px) {
+    .mobile-menu-trigger {
+        display: flex;
+        align-items: center;
+    }
+
+    /* No celular a barra horizontal de abas some inteira — vira o menu de gaveta acima */
+    header .nav-tabs {
+        display: none;
     }
 }
