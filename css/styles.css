@@ -1,18 +1,20 @@
         /* CONFIGURAÇÃO DE TEMAS - PALETA AZUL (referência: menus de navegação com destaque azul) */
         :root[data-theme="dark"] {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-input: #1e293b;
-            --border: #334155;
-            --text-main: #f8fafc;
-            --text-muted: #cbd5e1;
-            --card-shadow: rgba(0, 0, 0, 0.35);
+            --bg-main: #0a0a0a;
+            --bg-card: #18181b;
+            --bg-input: #1f1f23;
+            --border: #2e2e33;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --card-shadow: rgba(0, 0, 0, 0.5);
             --header-text: #ffffff;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --primary-alpha: rgba(59, 130, 246, 0.16);
-            --primary-soft: #60a5fa;
-            --primary-text: #60a5fa;
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --primary-alpha: rgba(139, 92, 246, 0.18);
+            --primary-soft: #a78bfa;
+            --primary-text: #a78bfa;
+            --header-bg: #0d0d10;
+            --header-bg-soft: #1a1a1f;
         }
 
         :root[data-theme="light"] {
