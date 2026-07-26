@@ -864,7 +864,7 @@
             /* Tabelas de dados: fonte um pouco menor pra caber mais coluna na largura disponível */
             .data-table {
                 font-size: var(--fs-xs);
-                min-width: 560px;
+                min-width: 720px;
             }
 
             /* Modais e diálogos: menos padding lateral, aproveitando melhor a largura da tela */
@@ -1069,5 +1069,11 @@
     /* No celular a barra horizontal de abas some inteira — vira o menu de gaveta acima */
     header .nav-tabs {
         display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .canvas-container {
+        min-height: 320px;
     }
 }
