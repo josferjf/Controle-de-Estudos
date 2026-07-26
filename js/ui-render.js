@@ -35,8 +35,14 @@
         function updateUI() {
             const count = appState.error_notebook.length;
             const badge = document.getElementById('error-badge-count');
-            if(count > 0) { badge.innerText = count; badge.style.display = "inline-block"; }
-            else { badge.style.display = "none"; }
+            const badgeMobile = document.getElementById('error-badge-count-mobile');
+            if(count > 0) {
+                badge.innerText = count; badge.style.display = "inline-block";
+                if (badgeMobile) { badgeMobile.innerText = count; badgeMobile.style.display = "inline-block"; }
+            } else {
+                badge.style.display = "none";
+                if (badgeMobile) badgeMobile.style.display = "none";
+            }
 
             const container = document.getElementById('cycle-queue-container');
             container.innerHTML = "";
