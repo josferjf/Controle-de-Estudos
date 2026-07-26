@@ -291,10 +291,10 @@
                 const trDiagnose = document.createElement('tr');
                 trDiagnose.innerHTML = `
                     <td><strong>${subjName}</strong></td>
-                    <td>${sHrs}h ${sMins}m</td>
-                    <td>${data.qty}</td>
-                    <td><strong>${data.qty > 0 ? pct.toFixed(1) + "%" : "0.0%"}</strong></td>
-                    <td>${statusBadge}</td>
+                    <td style="white-space:nowrap;">${sHrs}h ${sMins}m</td>
+                    <td style="white-space:nowrap;">${data.qty}</td>
+                    <td style="white-space:nowrap;"><strong>${data.qty > 0 ? pct.toFixed(1) + "%" : "0.0%"}</strong></td>
+                    <td style="white-space:nowrap;">${statusBadge}</td>
                 `;
                 diagnoseTbody.appendChild(trDiagnose);
             });
@@ -559,10 +559,11 @@
                                 color: tickColor,
                                 maxRotation: 45,
                                 minRotation: 45,
-                                autoSkip: false,
+                                autoSkip: window.innerWidth < 640,
                                 callback: function(value) {
                                     const label = this.getLabelForValue(value);
-                                    return label.length > 14 ? label.slice(0, 13) + '…' : label;
+                                    const maxChars = window.innerWidth < 640 ? 9 : 14;
+                                    return label.length > maxChars ? label.slice(0, maxChars - 1) + '…' : label;
                                 }
                             }
                         }
