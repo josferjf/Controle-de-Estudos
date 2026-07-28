@@ -257,8 +257,8 @@
                         <button class="filter-chip" style="background: var(--primary-alpha); color: var(--primary-text); padding: 4px 8px; font-size: 11px;" onclick="editErrorItem('${err.id}')"><i data-lucide="pencil" style="width:13px; height:13px; vertical-align: middle;"></i> Editar</button>
                         <button class="filter-chip" style="background: var(--danger-alpha); color: var(--danger); padding: 4px 8px; font-size: 11px;" onclick="deleteErrorItem('${err.id}')"><i data-lucide="trash-2" style="width:13px; height:13px; vertical-align: middle;"></i> Excluir</button>
                     </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px; padding-right: 130px;">
-                        <strong style="color:${titleColor};">${escapeHTML(err.snapshot_subject_name)}</strong>
+                    <div style="margin-bottom:4px; padding-right: 160px;">
+                        <strong style="color:${titleColor}; display:block;">${escapeHTML(err.snapshot_subject_name)}</strong>
                         <small style="color:var(--text-muted);">${new Date(err.timestamp).toLocaleDateString()}</small>
                     </div>
                     <p style="font-size:14px; font-weight:600; margin-bottom:10px;">${escapeHTML(err.what_went_wrong)}</p>
