@@ -107,8 +107,12 @@
             // é sempre o mesmo próximo tópico pendente. Aqui agrupamos por matéria+tópico numa única linha.
             const currentQueueKey = currentStep ? `${currentStep.subjectId}-${currentStep.topicId}` : null;
 
+            // A fila tem que começar do tópico atual (current_step_index) em diante — pegar do início do
+            // array inteiro mostrava itens que já ficaram pra trás na sequência, antes do ponteiro atual.
+            const orderedStepsFromCurrent = appState.study_cycle.steps_sequence.slice(appState.study_cycle.current_step_index);
+
             const groupedSteps = new Map();
-            appState.study_cycle.steps_sequence.forEach((step) => {
+            orderedStepsFromCurrent.forEach((step) => {
                 const key = `${step.subjectId}-${step.topicId}`;
                 if (!groupedSteps.has(key)) {
                     groupedSteps.set(key, { step, count: 0 });
