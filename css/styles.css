@@ -515,13 +515,17 @@
 
         .alert-banner.danger { background-color: var(--danger-alpha); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); }
         .alert-banner.warning { background-color: var(--warning-alpha); border: 1px solid rgba(245, 158, 11, 0.2); color: var(--warning); }
-        /* A caixa do Pilar 1 (Revisão Rápida) usa o roxo de destaque no tema escuro, em vez do amarelo padrão de "warning", que fica com pouco contraste no fundo escuro */
-        :root[data-theme="dark"] #quick-review-banner {
-            background-color: rgba(185, 128, 240, 0.12);
-            border-color: rgba(185, 128, 240, 0.3);
-            color: var(--primary-text);
-        }
         .alert-banner.success { background-color: var(--success-alpha); border: 1px solid rgba(34, 197, 94, 0.2); color: var(--success); transition: opacity 0.2s ease; }
+        /* A caixa do Pilar 1 (Revisão Rápida) usa um cinza neutro no tema escuro, em vez do amarelo padrão
+           de "warning" (baixo contraste no fundo escuro) e também não usa o roxo de destaque do app */
+        :root[data-theme="dark"] #quick-review-banner {
+            background-color: rgba(161, 161, 170, 0.12);
+            border-color: rgba(161, 161, 170, 0.25);
+            color: var(--text-main);
+        }
+        :root[data-theme="dark"] #quick-review-banner i {
+            color: var(--text-muted);
+        }
 
         /* TABELAS PROFISSIONAIS DE BI (PADDINGS E HOVERS REORGANIZADOS) */
         .data-table {
