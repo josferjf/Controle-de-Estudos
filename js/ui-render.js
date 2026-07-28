@@ -68,20 +68,27 @@
                 
                 const alertZone = document.getElementById('review-alert-indicator');
                 if (currentStep.pilar === 1) {
-                    const boostBadge = currentStep.priorityBoosted ? `<span class="badge badge-warning" style="margin-left:8px;">Prioridade elevada (desempenho abaixo da meta)</span>` : '';
+                    const boostBadge = currentStep.priorityBoosted ? `<span class="badge badge-warning" style="margin-left:8px;">Prioridade elevada</span>` : '';
                     let lastTopicHtml = '';
                     if (currentStep.lastCompletedTopicTitle) {
-                        lastTopicHtml = `<div style="margin-top:10px; font-size:13px; color:var(--text-muted);">Antes de iniciar essa sessão, revise rapidamente o assunto: <strong style="color:var(--text-main);">${escapeHTML(currentStep.lastCompletedTopicTitle)}</strong></div>`;
+                        lastTopicHtml = `<div style="font-size:13px; color:var(--text-muted); line-height:1.5;">Revise rapidamente antes de começar: <strong style="color:var(--text-main);">${escapeHTML(currentStep.lastCompletedTopicTitle)}</strong></div>`;
                         if (currentStep.lastCompletedTopicMaterialLink) {
-                            lastTopicHtml += `<a href="${escapeHTML(currentStep.lastCompletedTopicMaterialLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; margin-top:8px; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px;"><i data-lucide="book-open" style="width:12px; height:12px;"></i>&nbsp;Material Teórico</a>`;
+                            lastTopicHtml += `<a href="${escapeHTML(currentStep.lastCompletedTopicMaterialLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; margin-top:10px; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px;"><i data-lucide="book-open" style="width:12px; height:12px;"></i>&nbsp;Material Teórico</a>`;
                         }
                     }
+                    // Tudo (aviso, lembrete do último tópico e checkbox) agora vive dentro da mesma caixa,
+                    // com respiro interno entre as partes, em vez de 3 blocos soltos colados um no outro.
                     alertZone.innerHTML = `
-                        <div class="alert-banner warning" id="quick-review-banner" style="margin: 0;"><i data-lucide="info"></i> <span><strong>Pilar 1 - Revisão Rápida:</strong> Dedique de 5 a 10 min para rever as anotações do bloco anterior.${boostBadge}</span></div>
-                        ${lastTopicHtml}
-                        <label style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:13px; cursor:pointer; color: var(--text-muted);">
-                            <input type="checkbox" id="quick-review-checkbox" style="width:16px; height:16px; cursor:pointer;" onchange="toggleQuickReviewConfirmed(this)"> Já revisei rapidamente o bloco anterior
-                        </label>
+                        <div class="alert-banner warning" id="quick-review-banner" style="margin: 0; flex-direction: column; align-items: stretch; gap: 14px;">
+                            <div style="display:flex; align-items:flex-start; gap:10px;">
+                                <i data-lucide="info" style="flex-shrink:0; margin-top:2px; width:16px; height:16px;"></i>
+                                <span style="line-height:1.5;"><strong>Pilar 1 - Revisão Rápida:</strong> dedique de 5 a 10 min para rever as anotações do bloco anterior.${boostBadge}</span>
+                            </div>
+                            ${lastTopicHtml ? `<div style="padding-top:14px; border-top:1px solid rgba(128,128,128,0.15);">${lastTopicHtml}</div>` : ''}
+                            <label style="display:flex; align-items:center; gap:8px; padding-top:14px; border-top:1px solid rgba(128,128,128,0.15); font-size:13px; cursor:pointer; color: var(--text-muted);">
+                                <input type="checkbox" id="quick-review-checkbox" style="width:16px; height:16px; cursor:pointer; flex-shrink:0;" onchange="toggleQuickReviewConfirmed(this)"> Já revisei rapidamente o bloco anterior
+                            </label>
+                        </div>
                     `;
                 } else if (currentStep.pilar === 2) {
                     let prevLinksHtml = '';
@@ -90,10 +97,16 @@
                             `<a href="${escapeHTML(t.materialLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px; margin-top:6px; margin-right:6px;"><i data-lucide="book-open" style="width:12px; height:12px;"></i>&nbsp;${escapeHTML(t.title)}</a>`
                         ).join('');
                         if (links) {
-                            prevLinksHtml = `<div style="margin-top:8px; font-size:12px; color:var(--text-muted);">Material teórico das últimas aulas:</div><div style="display:flex; flex-wrap:wrap;">${links}</div>`;
+                            prevLinksHtml = `<div style="padding-top:14px; margin-top:14px; border-top:1px solid rgba(239,68,68,0.2);"><div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Material teórico das últimas aulas:</div><div style="display:flex; flex-wrap:wrap;">${links}</div></div>`;
                         }
                     }
-                    alertZone.innerHTML = `<div class="alert-banner danger" style="margin: 0;"><i data-lucide="alert-octagon"></i> <span><strong>Revisão Bloqueante:</strong> Consolide a base antes de tentar avançar no edital.</span></div>${prevLinksHtml}`;
+                    alertZone.innerHTML = `<div class="alert-banner danger" style="margin: 0; flex-direction: column; align-items: stretch;">
+                        <div style="display:flex; align-items:flex-start; gap:10px;">
+                            <i data-lucide="alert-octagon" style="flex-shrink:0; margin-top:2px; width:16px; height:16px;"></i>
+                            <span style="line-height:1.5;"><strong>Revisão Bloqueante:</strong> consolide a base antes de tentar avançar no edital.</span>
+                        </div>
+                        ${prevLinksHtml}
+                    </div>`;
                 } else if (currentStep.pilar === 3) {
                     alertZone.innerHTML = `<div class="alert-banner danger" style="margin: 0;"><i data-lucide="alert-octagon"></i> <span><strong>Revisão Bloqueante:</strong> Consolide a base antes de tentar avançar no edital.</span></div>`;
                 } else {
