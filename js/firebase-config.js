@@ -8,12 +8,12 @@
 // separadamente no console do Firebase).
 
 const firebaseConfig = {
-    apiKey: "COLE_AQUI_SUA_API_KEY",
-    authDomain: "COLE_AQUI_SEU_PROJETO.firebaseapp.com",
-    projectId: "COLE_AQUI_SEU_PROJECT_ID",
-    storageBucket: "COLE_AQUI_SEU_PROJETO.appspot.com",
-    messagingSenderId: "COLE_AQUI_SEU_SENDER_ID",
-    appId: "COLE_AQUI_SEU_APP_ID"
+  apiKey: "AIzaSyDgvD02uYo7dS7hTGXcvReztmQA3RPyA2w",
+  authDomain: "controle-de-estudos-e89d8.firebaseapp.com",
+  projectId: "controle-de-estudos-e89d8",
+  storageBucket: "controle-de-estudos-e89d8.firebasestorage.app",
+  messagingSenderId: "467389406939",
+  appId: "1:467389406939:web:9e491583167675bc5e36fe"
 };
 
 firebase.initializeApp(firebaseConfig);
