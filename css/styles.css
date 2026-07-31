@@ -17,6 +17,7 @@
             --header-bg-soft: #13293f;
             --accent-editorial: #b8863f;
             --accent-editorial-alpha: rgba(184, 134, 63, 0.14);
+            --accent-editorial-soft: #d9b06e;
         }
 
         :root[data-theme="light"] {
@@ -35,6 +36,7 @@
             --primary-text: var(--header-bg);
             --accent-editorial: #9c6f2e;
             --accent-editorial-alpha: rgba(156, 111, 46, 0.1);
+            --accent-editorial-soft: #c08f42;
         }
 
         /* PALETA MODERNIZADA — azul como cor de ação principal; verde/laranja/vermelho como indicadores semânticos */
@@ -467,7 +469,7 @@
 
         .progress-bar {
             height: 100%;
-            background: var(--primary-gradient);
+            background: linear-gradient(90deg, var(--accent-editorial) 0%, var(--accent-editorial-soft) 100%);
             width: 0%;
         }
 
