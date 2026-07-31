@@ -35,7 +35,7 @@
                 </div>
                 <button id="btn-login-submit" class="btn" style="width: 100%;" onclick="handleLoginSubmit()"><i data-lucide="log-in"></i> Entrar</button>
                 <p style="text-align: center; font-size: 13px; margin-top: 15px; color: rgba(255,255,255,0.65);">
-                    Não tem conta? <a href="#" onclick="showSignupView(); return false;" style="color: #fff; font-weight:600;">Criar conta</a>
+                    Não tem conta? <a href="#" onclick="showSignupView(); return false;" style="color: var(--accent-editorial-soft); font-weight:600;">Criar conta</a>
                 </p>
                 <p style="text-align: center; font-size: 13px; margin-top: 8px;">
                     <a href="#" onclick="showForgotPasswordView(); return false;" style="color: rgba(255,255,255,0.65);">Esqueci minha senha</a>
@@ -57,7 +57,7 @@
                 </div>
                 <button id="btn-signup-submit" class="btn btn-warning" style="width: 100%;" onclick="handleSignupSubmit()"><i data-lucide="user-plus"></i> Criar Conta</button>
                 <p style="text-align: center; font-size: 13px; margin-top: 15px; color: rgba(255,255,255,0.65);">
-                    Já tem conta? <a href="#" onclick="showLoginView(); return false;" style="color: #fff; font-weight:600;">Entrar</a>
+                    Já tem conta? <a href="#" onclick="showLoginView(); return false;" style="color: var(--accent-editorial-soft); font-weight:600;">Entrar</a>
                 </p>
             </div>
 
@@ -71,7 +71,7 @@
                 </div>
                 <button id="btn-forgot-password-submit" class="btn" style="width: 100%;" onclick="handleForgotPasswordSubmit()"><i data-lucide="send"></i> Enviar Link de Recuperação</button>
                 <p style="text-align: center; font-size: 13px; margin-top: 15px;">
-                    <a href="#" onclick="showLoginView(); return false;" style="color: #fff; font-weight:600;">Voltar para o login</a>
+                    <a href="#" onclick="showLoginView(); return false;" style="color: var(--accent-editorial-soft); font-weight:600;">Voltar para o login</a>
                 </p>
             </div>
 
@@ -200,7 +200,7 @@
                         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 25px;" id="weekly-goals-count-text">Metas desta semana: 0 (1 meta = 1 hora de estudo)</div>
 
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-                            <h4 style="font-size: 12px; font-weight:700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; margin-bottom:0;"><i data-lucide="layers" style="width:14px; height:14px;"></i> <span id="cycle-queue-title-text">Metas de Hoje</span></h4>
+                            <h4 style="font-size: 12px; font-weight:700; color: var(--accent-editorial); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; margin-bottom:0;"><i data-lucide="layers" style="width:14px; height:14px;"></i> <span id="cycle-queue-title-text">Metas de Hoje</span></h4>
                             <button class="filter-chip" style="padding: 4px 10px; background: var(--bg-input); font-size: 11px;" onclick="toggleTwoWeeksView()" id="btn-toggle-two-weeks">Ver Próximas 2 Semanas</button>
                         </div>
                         <div id="today-goals-progress" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;"></div>
@@ -216,7 +216,7 @@
                     <div class="card card-warning" style="margin-top: 25px;">
                         <div class="card-title"><span class="title-text">Contagem Regressiva & Ritmo</span></div>
                         <div style="text-align: center; margin-bottom: 15px;">
-                            <div style="font-size: var(--fs-2xl); font-weight: 800; color: var(--warning);" id="exam-countdown-days">--</div>
+                            <div style="font-size: var(--fs-2xl); font-weight: 800; color: var(--accent-editorial);" id="exam-countdown-days">--</div>
                             <div style="font-size: 12px; color: var(--text-muted);">dias até a prova</div>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
@@ -372,7 +372,7 @@
                         <button class="btn" style="width: 100%; margin-top: 5px;" onclick="saveWeeklyDistribution()"><i data-lucide="calendar-range"></i> Salvar Carga Horária e Gerar Metas</button>
 
                         <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border);">
-                            <h4 style="font-size: 12px; font-weight:700; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Metas da Semana Geradas</h4>
+                            <h4 style="font-size: 12px; font-weight:700; margin-bottom: 10px; color: var(--accent-editorial); text-transform: uppercase; letter-spacing: 0.5px;">Metas da Semana Geradas</h4>
                             <div id="weekly-goals-summary"></div>
                         </div>
                     </div>
@@ -524,7 +524,7 @@
             <div class="stats-summary-grid">
                 <div class="stat-box" style="border-top: 2px solid var(--primary);">
                     <label>Tempo Total Líquido</label>
-                    <div class="stat-value" style="color: var(--primary-text);" id="stat-total-hours">0h 00m</div>
+                    <div class="stat-value" style="color: var(--accent-editorial);" id="stat-total-hours">0h 00m</div>
                     <small id="stat-total-hours-delta" style="color:var(--text-muted); font-size:11px;"></small>
                 </div>
                 <div class="stat-box" style="border-top: 2px solid var(--success);">
@@ -551,7 +551,7 @@
                 </div>
                 <div class="stat-box" style="border-top: 2px solid var(--primary);">
                     <label>Tempo Médio por Sessão</label>
-                    <div class="stat-value" style="color: var(--primary-text);" id="stat-avg-session">0 min</div>
+                    <div class="stat-value" style="color: var(--accent-editorial);" id="stat-avg-session">0 min</div>
                 </div>
             </div>
 
