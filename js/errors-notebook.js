@@ -350,7 +350,7 @@
 
             groups.forEach(group => {
                 const groupHeader = document.createElement('div');
-                groupHeader.style.cssText = "font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; margin: 18px 0 8px; padding-bottom:6px; border-bottom: 1px solid var(--border);";
+                groupHeader.style.cssText = "font-size:12px; font-weight:700; color:var(--accent-editorial); text-transform:uppercase; letter-spacing:0.3px; margin: 18px 0 8px; padding-bottom:6px; border-bottom: 1px solid var(--border);";
                 groupHeader.innerText = `${group.name} (${group.items.length})`;
                 errorContainer.appendChild(groupHeader);
 
