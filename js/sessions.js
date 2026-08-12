@@ -118,6 +118,15 @@
                         s.last_tudao_review_date = new Date().toISOString();
                     }
                 });
+            } else if (currentStep.topicId === "CUMULATIVE") {
+                // Marca esse marco de revisão (ex: "revisão feita até a Aula 2") como resolvido — sem isso, a
+                // matéria ficaria travada mostrando a mesma revisão pra sempre, já que nenhum tópico novo é
+                // concluído aqui. Assim que marcado, a Aula seguinte volta a aparecer no turno normal da matéria.
+                appState.subjects.forEach(s => {
+                    if (s.id === currentStep.subjectId) {
+                        s.last_cumulative_review_milestone = s.topics.filter(t => t.completed).length;
+                    }
+                });
             }
 
             // Pilar 1 - Revisão Rápida: contabiliza a revisão realizada
@@ -151,19 +160,6 @@
             customAlert("Progresso pragmático salvo!");
             resetTimer();
             regenerateSmartCycle(false);
-
-            // Correção: se a matéria que acabou de ser estudada agora tem uma Revisão Cumulativa ou Tudão pendente
-            // (por ter acabado de cruzar o gatilho), garante que ela seja de fato a próxima exibida — sem isso,
-            // o simples incremento de índice podia pular direto para o próximo tópico e a revisão nunca aparecia.
-            if (!currentStep.isReviewMode) {
-                const pendingReviewIdx = appState.study_cycle.steps_sequence.findIndex(s =>
-                    s.subjectId === currentStep.subjectId && (s.topicId === 'CUMULATIVE' || s.topicId === 'TUDAO')
-                );
-                if (pendingReviewIdx !== -1) {
-                    appState.study_cycle.current_step_index = pendingReviewIdx;
-                    saveToDatabase();
-                }
-            }
 
             updateUI();
         }
