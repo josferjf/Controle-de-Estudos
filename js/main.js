@@ -7,6 +7,16 @@ window.addEventListener('DOMContentLoaded', () => {
     checkAuthState();
 });
 
+// Registra o Service Worker do PWA (permite instalar como app e funcionar offline).
+// Roda em segundo plano, sem bloquear nem depender do restante da inicialização.
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch((err) => {
+            console.warn('Service Worker não pôde ser registrado:', err);
+        });
+    });
+}
+
 // Roda uma vez, assim que o usuário está autenticado (login novo ou sessão já existente).
 async function runAppInitialization() {
     const loaded = await loadFromDatabase();
