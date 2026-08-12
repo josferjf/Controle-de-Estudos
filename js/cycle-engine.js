@@ -3,7 +3,6 @@
 // ============================================================
 
         function regenerateSmartCycle(forceResetIndex = false) {
-            let reviewSequence = [];
             let regularCandidates = [];
 
             const activeSubjects = appState.subjects.filter(s => s.isActive);
@@ -13,6 +12,21 @@
 
             appState.subjects.forEach(subj => {
                 if (!subj.isActive) return;
+
+                // Peso efetivo da matéria — calculado uma vez e reaproveitado tanto pro próximo tópico normal
+                // quanto pra revisão devida, garantindo que a revisão apareça no MESMO turno/frequência que a
+                // matéria já tinha no rodízio, em vez de furar a fila inteira ou sumir da rotação.
+                const calibrationMode = appState.user_configuration.calibration_mode || 'WEIGHT';
+                let baseWeight;
+                if (calibrationMode === 'QUESTIONS_COUNT') {
+                    baseWeight = Math.max(1, Math.round((parseInt(subj.expected_questions) || 1) / avgExpectedQuestions));
+                } else {
+                    baseWeight = parseInt(subj.weight) || 1;
+                }
+                const performance = getSubjectAveragePerformance(subj.name);
+                const targetScore = appState.user_configuration.target_score || 85;
+                const performanceBoost = (performance !== null && performance < targetScore) ? 1 : 0;
+                const effectiveWeight = Math.max(1, baseWeight + performanceBoost);
 
                 if (subj.isStrategicReview) {
                     // Periodicidade da Revisão Tudão: só volta a aparecer quando o período configurado já passou desde a última vez feita
@@ -25,13 +39,16 @@
                         isDue = new Date() >= nextDue;
                     }
                     if (isDue) {
-                        reviewSequence.push({
-                            subjectId: subj.id,
-                            subjectName: subj.name,
-                            topicId: "STRATEGIC",
-                            topicTitle: "MODO REVISÃO ESTRATÉGICA: Cadernos Completos via TEC Concursos (Questões)",
-                            isReviewMode: true,
-                            pilar: 4
+                        regularCandidates.push({
+                            weight: effectiveWeight,
+                            entry: {
+                                subjectId: subj.id,
+                                subjectName: subj.name,
+                                topicId: "STRATEGIC",
+                                topicTitle: "MODO REVISÃO ESTRATÉGICA: Cadernos Completos via TEC Concursos (Questões)",
+                                isReviewMode: true,
+                                pilar: 4
+                            }
                         });
                     }
                     return;
@@ -41,19 +58,22 @@
                 const completedTopics = subj.topics.filter(t => t.completed).length;
 
                 if (completedTopics === totalTopics && totalTopics > 0) {
-                    reviewSequence.push({
-                        subjectId: subj.id,
-                        subjectName: subj.name,
-                        topicId: "TUDAO",
-                        topicTitle: `REVISÃO TUDÃO: Conteúdo Completo (Ajuste: ${appState.user_configuration.tudao_period || 1} Mês)`,
-                        isReviewMode: true,
-                        pilar: 3
+                    regularCandidates.push({
+                        weight: effectiveWeight,
+                        entry: {
+                            subjectId: subj.id,
+                            subjectName: subj.name,
+                            topicId: "TUDAO",
+                            topicTitle: `REVISÃO TUDÃO: Conteúdo Completo (Ajuste: ${appState.user_configuration.tudao_period || 1} Mês)`,
+                            isReviewMode: true,
+                            pilar: 3
+                        }
                     });
                     subj.isStrategicReview = true;
                     return;
                 }
 
-                if (completedTopics > 0 && completedTopics % 3 === 0) {
+                if (completedTopics > 0 && completedTopics % 3 === 0 && subj.last_cumulative_review_milestone !== completedTopics) {
                     // Pega os tópicos concluídos mais recentemente estudados (até 4), priorizando a data real da
                     // sessão (last_studied_at) — cai pra posição no array só se o tópico não tiver essa data
                     // registrada (ex: foi marcado manualmente como concluído no Cadastro, fora de ordem).
@@ -65,34 +85,26 @@
                     });
                     const previousTopics = sortedByRecency.slice(0, 4).map(t => ({ title: t.title, materialLink: t.materialLink || '', link: t.link || '' }));
 
-                    reviewSequence.push({
-                        subjectId: subj.id,
-                        subjectName: subj.name,
-                        topicId: "CUMULATIVE",
-                        topicTitle: `REVISÃO CUMULATIVA: Bloqueio de avanço! Revisar do início até Aula ${completedTopics - 1}`,
-                        isReviewMode: true,
-                        pilar: 2,
-                        previousTopics: previousTopics
+                    regularCandidates.push({
+                        weight: effectiveWeight,
+                        entry: {
+                            subjectId: subj.id,
+                            subjectName: subj.name,
+                            topicId: "CUMULATIVE",
+                            topicTitle: `REVISÃO CUMULATIVA: Bloqueio de avanço! Revisar do início até Aula ${completedTopics - 1}`,
+                            isReviewMode: true,
+                            pilar: 2,
+                            previousTopics: previousTopics
+                        }
                     });
+                    // Bloqueio dentro da própria matéria: enquanto essa revisão estiver pendente, não oferece
+                    // o próximo tópico normal (a Aula seguinte) — nem aqui, nem em outras matérias, que seguem
+                    // seu rodízio normal sem serem afetadas por essa revisão.
+                    return;
                 }
 
                 const pend = subj.topics.find(t => !t.completed);
                 if (pend) {
-                    // Calibragem Base: respeita o modo escolhido pelo usuário (peso teórico ou nº de questões do edital)
-                    const calibrationMode = appState.user_configuration.calibration_mode || 'WEIGHT';
-                    let baseWeight;
-                    if (calibrationMode === 'QUESTIONS_COUNT') {
-                        baseWeight = Math.max(1, Math.round((parseInt(subj.expected_questions) || 1) / avgExpectedQuestions));
-                    } else {
-                        baseWeight = parseInt(subj.weight) || 1;
-                    }
-
-                    // Prioridade dinâmica: desempenho abaixo da meta soma peso extra.
-                    const performance = getSubjectAveragePerformance(subj.name);
-                    const targetScore = appState.user_configuration.target_score || 85;
-                    const performanceBoost = (performance !== null && performance < targetScore) ? 1 : 0;
-                    const effectiveWeight = Math.max(1, baseWeight + performanceBoost);
-
                     // Último tópico realmente estudado dessa matéria (pela data da sessão, não só a posição no
                     // array) — usado pelo Pilar 1 (Revisão Rápida) pra reexibir o material teórico daquele
                     // assunto antes de avançar pro próximo. Cai pro último do array se nenhum tiver a data
@@ -128,7 +140,7 @@
             });
 
             const weightedRegularSequence = buildWeightedRoundRobin(regularCandidates);
-            let sequence = reviewSequence.concat(weightedRegularSequence);
+            let sequence = weightedRegularSequence;
 
             if (sequence.length === 0) {
                 sequence.push({ subjectId: "none", subjectName: "Nenhuma", topicId: "none", topicTitle: "Cadastre matérias nas configurações.", isReviewMode: false, pilar: 0 });
