@@ -91,7 +91,7 @@
                             subjectId: subj.id,
                             subjectName: subj.name,
                             topicId: "CUMULATIVE",
-                            topicTitle: `REVISÃO CUMULATIVA: Bloqueio de avanço! Revisar do início até Aula ${completedTopics - 1}`,
+                            topicTitle: `REVISÃO CUMULATIVA: Bloqueio de avanço! Revisar do início até Aula ${completedTopics}`,
                             isReviewMode: true,
                             pilar: 2,
                             previousTopics: previousTopics
