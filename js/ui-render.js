@@ -72,6 +72,9 @@
                     let lastTopicHtml = '';
                     if (currentStep.lastCompletedTopicTitle) {
                         lastTopicHtml = `<div style="font-size:13px; color:var(--text-muted); line-height:1.5;">Revise rapidamente antes de começar: <strong style="color:var(--text-main);">${escapeHTML(currentStep.lastCompletedTopicTitle)}</strong></div>`;
+                        if (currentStep.lastCompletedTopicLink) {
+                            lastTopicHtml += `<a href="${escapeHTML(currentStep.lastCompletedTopicLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; margin-top:10px; margin-right:8px; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px;"><i data-lucide="link" style="width:12px; height:12px;"></i>&nbsp;Caderno de Questões</a>`;
+                        }
                         if (currentStep.lastCompletedTopicMaterialLink) {
                             lastTopicHtml += `<a href="${escapeHTML(currentStep.lastCompletedTopicMaterialLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; margin-top:10px; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px;"><i data-lucide="book-open" style="width:12px; height:12px;"></i>&nbsp;Material Teórico</a>`;
                         }
@@ -93,11 +96,18 @@
                 } else if (currentStep.pilar === 2) {
                     let prevLinksHtml = '';
                     if (currentStep.previousTopics && currentStep.previousTopics.length > 0) {
-                        const links = currentStep.previousTopics.filter(t => t.materialLink).map(t =>
-                            `<a href="${escapeHTML(t.materialLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px; margin-top:6px; margin-right:6px;"><i data-lucide="book-open" style="width:12px; height:12px;"></i>&nbsp;${escapeHTML(t.title)}</a>`
-                        ).join('');
+                        const links = currentStep.previousTopics.filter(t => t.materialLink || t.link).map(t => {
+                            let btns = '';
+                            if (t.link) {
+                                btns += `<a href="${escapeHTML(t.link)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px; margin-top:6px; margin-right:6px;"><i data-lucide="link" style="width:12px; height:12px;"></i>&nbsp;${escapeHTML(t.title)} (Questões)</a>`;
+                            }
+                            if (t.materialLink) {
+                                btns += `<a href="${escapeHTML(t.materialLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding:6px 12px; background:var(--primary-alpha); text-decoration:none; font-size:12px; margin-top:6px; margin-right:6px;"><i data-lucide="book-open" style="width:12px; height:12px;"></i>&nbsp;${escapeHTML(t.title)}</a>`;
+                            }
+                            return btns;
+                        }).join('');
                         if (links) {
-                            prevLinksHtml = `<div style="padding-top:14px; margin-top:14px; border-top:1px solid rgba(239,68,68,0.2);"><div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Material teórico das últimas aulas:</div><div style="display:flex; flex-wrap:wrap;">${links}</div></div>`;
+                            prevLinksHtml = `<div style="padding-top:14px; margin-top:14px; border-top:1px solid rgba(239,68,68,0.2);"><div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Material das últimas aulas:</div><div style="display:flex; flex-wrap:wrap;">${links}</div></div>`;
                         }
                     }
                     alertZone.innerHTML = `<div class="alert-banner danger" style="margin: 0; flex-direction: column; align-items: stretch;">
