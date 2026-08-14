@@ -150,7 +150,8 @@
                             priorityBoosted: performanceBoost > 0,
                             finalStretchReason: finalStretchActive ? (recurringErrorCount > 0 ? 'erros' : 'desempenho') : null,
                             lastCompletedTopicTitle: lastCompletedTopic ? lastCompletedTopic.title : '',
-                            lastCompletedTopicMaterialLink: lastCompletedTopic ? (lastCompletedTopic.materialLink || '') : ''
+                            lastCompletedTopicMaterialLink: lastCompletedTopic ? (lastCompletedTopic.materialLink || '') : '',
+                            lastCompletedTopicLink: lastCompletedTopic ? (lastCompletedTopic.link || '') : ''
                         }
                     });
                 }
