@@ -278,9 +278,21 @@
             }
             document.getElementById('stat-edital-coverage').innerText = coveragePercentage.toFixed(1) + "%";
 
-            // Cálculo dinâmico do progresso da meta semanal baseado nos logs filtrados
+            // Cálculo dinâmico do progresso da meta semanal — precisa ser sempre baseado na semana ATUAL
+            // (segunda a domingo), independente do filtro de período selecionado na aba Evolução (que pode
+            // estar em "Todo o Período" e somaria horas de semanas passadas, nunca reiniciando).
+            const weekStart = new Date();
+            weekStart.setHours(0, 0, 0, 0);
+            const dayOfWeek = weekStart.getDay(); // 0 = domingo ... 6 = sábado
+            const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            weekStart.setDate(weekStart.getDate() - diffToMonday);
+
+            const thisWeekSeconds = appState.study_logs
+                .filter(l => new Date(l.timestamp) >= weekStart)
+                .reduce((acc, l) => acc + l.liquid_seconds, 0);
+
             const weeklyHoursGoal = parseFloat(appState.user_configuration.weekly_hours_goal) || 30;
-            const computedHoursThisPeriod = totalSeconds / 3600;
+            const computedHoursThisPeriod = thisWeekSeconds / 3600;
             const progressPercent = Math.min(100, (computedHoursThisPeriod / weeklyHoursGoal) * 100);
             document.getElementById('weekly-progress-bar').style.width = `${progressPercent}%`;
             document.getElementById('weekly-progress-text').innerText = `${progressPercent.toFixed(1)}% concluído`;
