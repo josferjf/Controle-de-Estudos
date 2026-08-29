@@ -44,7 +44,7 @@
                 const finalStretchBoost = finalStretchActive ? (recurringErrorCount * 2) + (belowTarget ? 2 : 0) : 0;
                 const effectiveWeight = Math.max(1, baseWeight + performanceBoost + finalStretchBoost);
 
-                if (subj.isStrategicReview) {
+                if (subj.isStrategicReview || subj.review_only_mode) {
                     // Periodicidade da Revisão Tudão: só volta a aparecer quando o período configurado já passou desde a última vez feita
                     const periodMonths = appState.user_configuration.tudao_period || 1;
                     const lastReview = subj.last_tudao_review_date ? new Date(subj.last_tudao_review_date) : null;
@@ -121,6 +121,12 @@
 
                 const pend = subj.topics.find(t => !t.completed);
                 if (pend) {
+                    // "Preciso de mais tempo": esse tópico foi adiado por 2 dias — a matéria some da fila até
+                    // o prazo passar, em vez de reaparecer no próximo turno do rodízio.
+                    if (pend.postponed_until && new Date(pend.postponed_until) > new Date()) {
+                        return;
+                    }
+
                     // Último tópico realmente estudado dessa matéria (pela data da sessão, não só a posição no
                     // array) — usado pelo Pilar 1 (Revisão Rápida) pra reexibir o material teórico daquele
                     // assunto antes de avançar pro próximo. Cai pro último do array se nenhum tiver a data
