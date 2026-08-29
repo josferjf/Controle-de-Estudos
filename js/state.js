@@ -14,13 +14,13 @@ const defaultAppState = {
         final_stretch_mode: false
     },
     subjects: [
-        { id: "subj-1", name: "Direito Constitucional", weight: 3, expected_questions: 15, isActive: true, isStrategicReview: false, last_tudao_review_date: null, topics: [
+        { id: "subj-1", name: "Direito Constitucional", weight: 3, expected_questions: 15, isActive: true, isStrategicReview: false, review_only_mode: false, last_tudao_review_date: null, topics: [
             { id: "top-1-1", title: "Aula 00: Direitos Individuais", completed: true, link: '', materialLink: '' },
             { id: "top-1-2", title: "Aula 01: Processo Legislativo", completed: false, link: '', materialLink: '' },
             { id: "top-1-3", title: "Aula 02: Controle de Constitucionalidade", completed: false, link: '', materialLink: '' },
             { id: "top-1-4", title: "Aula 03: Poder Executivo", completed: false, link: '', materialLink: '' }
         ]},
-        { id: "subj-2", name: "Direito Administrativo", weight: 2, expected_questions: 12, isActive: true, isStrategicReview: false, last_tudao_review_date: null, topics: [
+        { id: "subj-2", name: "Direito Administrativo", weight: 2, expected_questions: 12, isActive: true, isStrategicReview: false, review_only_mode: false, last_tudao_review_date: null, topics: [
             { id: "top-2-1", title: "Aula 00: Princípios Regime Jurídico", completed: true, link: '', materialLink: '' },
             { id: "top-2-2", title: "Aula 01: Atos Administrativos", completed: true, link: '', materialLink: '' },
             { id: "top-2-3", title: "Aula 02: Nova Lei de Licitações 14.133", completed: false, link: '', materialLink: '' }
@@ -143,6 +143,7 @@ function applyBackwardCompatibilityMigrations() {
     if (appState.study_cycle.balance_settled_through_date === undefined) appState.study_cycle.balance_settled_through_date = null;
     appState.subjects.forEach(s => {
         if (s.last_tudao_review_date === undefined) s.last_tudao_review_date = null;
+        if (s.review_only_mode === undefined) s.review_only_mode = false;
         s.topics.forEach(t => { if (t.link === undefined) t.link = ''; if (t.materialLink === undefined) t.materialLink = ''; });
     });
     const OLD_ROOT_CAUSE_MAP = {
