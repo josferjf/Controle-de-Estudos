@@ -16,6 +16,87 @@
             }
         }
 
+        // "Preciso de mais tempo": pra quando o assunto não coube numa sessão só. Registra o tempo estudado
+        // (conta pro total de horas e pra meta do dia), mas NÃO marca o tópico como concluído — ele continua
+        // pendente de onde parou. A matéria fica pausada da fila por 2 dias (evita reaparecer amanhã de manhã
+        // só porque bateu a vez dela no rodízio), e depois volta normal pra você continuar o mesmo assunto.
+        function submitPartialSession() {
+            const currentStep = appState.study_cycle.steps_sequence[appState.study_cycle.current_step_index];
+            if (!currentStep || currentStep.subjectId === "none") {
+                customAlert("Nenhuma matéria selecionada no ciclo ativo.");
+                return;
+            }
+            if (currentStep.isReviewMode) {
+                customAlert("Essa opção é só pra aulas/tópicos normais. Pra revisões, use o botão 'Pular' se precisar adiar.");
+                return;
+            }
+
+            const calculatedSeconds = appState.timer_state.mode === 'pomodoro'
+                ? (appState.timer_state.total_focus_seconds_this_session || 0) + (appState.timer_state.pomodoro_phase === 'focus' ? (POMODORO_FOCUS_SECONDS - appState.timer_state.seconds) : 0)
+                : appState.timer_state.seconds;
+
+            const manualHoursInput = document.getElementById('input-manual-hours').value;
+            let logSeconds;
+            if (manualHoursInput && manualHoursInput.trim() !== "") {
+                const manualHours = parseFloat(manualHoursInput);
+                if (isNaN(manualHours) || manualHours <= 0) {
+                    customAlert("O ajuste manual de tempo precisa ser um número maior que zero.");
+                    return;
+                }
+                logSeconds = manualHours * 3600;
+            } else if (calculatedSeconds > 5) {
+                logSeconds = calculatedSeconds;
+            } else {
+                customAlert("O cronômetro não foi iniciado (ou rodou por menos de 5 segundos). Inicie o cronômetro antes de estudar, ou preencha o campo 'Ajustar Tempo (opcional)' manualmente antes de salvar.");
+                return;
+            }
+
+            // Marca o tópico com um prazo de 2 dias antes de voltar a aparecer na fila — a matéria fica de
+            // fora do rodízio até lá, sem precisar contar sessões (funciona igual estudando todo dia ou não).
+            const postponeUntil = new Date();
+            postponeUntil.setDate(postponeUntil.getDate() + 2);
+
+            appState.subjects.forEach(s => {
+                if (s.id === currentStep.subjectId) {
+                    s.topics.forEach(t => {
+                        if (t.id === currentStep.topicId) {
+                            t.postponed_until = postponeUntil.toISOString();
+                            t.last_studied_at = new Date().toISOString();
+                        }
+                    });
+                }
+            });
+
+            appState.study_logs.push({
+                id: "log-" + Date.now(),
+                timestamp: new Date().toISOString(),
+                subject_id: currentStep.subjectId,
+                snapshot_subject_name: currentStep.subjectName,
+                snapshot_topic_title: `${currentStep.topicTitle} (sessão parcial — ainda não concluído)`,
+                liquid_seconds: logSeconds,
+                questions_attempted: 0,
+                questions_correct: 0,
+                performance_percentage: 0,
+                is_theory_only: true
+            });
+
+            appState.study_cycle.current_step_index++;
+
+            document.getElementById('input-log-qty').value = "";
+            document.getElementById('input-log-correct').value = "";
+            document.getElementById('input-manual-hours').value = "";
+            document.getElementById('input-log-qty').disabled = false;
+            document.getElementById('input-log-correct').disabled = false;
+            const noQuestionsCheckbox = document.getElementById('input-no-questions');
+            if (noQuestionsCheckbox) noQuestionsCheckbox.checked = false;
+
+            customAlert("Tempo registrado! Essa matéria volta a aparecer na fila em 2 dias, pra você continuar esse mesmo assunto.");
+            resetTimer();
+            regenerateSmartCycle(false);
+
+            updateUI();
+        }
+
         function submitStudySession() {
             const qtyInput = document.getElementById('input-log-qty').value;
             const correctInput = document.getElementById('input-log-correct').value;
