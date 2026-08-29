@@ -31,6 +31,16 @@
                 return;
             }
 
+            // Mesma exigência do Pilar 1 que já existe no "Salvar Avanço" — sem isso, dava pra pular a
+            // confirmação da Revisão Rápida só clicando em "Preciso de mais tempo" em vez de salvar normal.
+            if (currentStep.pilar === 1) {
+                const quickReviewCheckbox = document.getElementById('quick-review-checkbox');
+                if (!quickReviewCheckbox || !quickReviewCheckbox.checked) {
+                    customAlert("Antes de salvar, confirme que você fez a Revisão Rápida (5 a 10 min) do bloco anterior, marcando a caixa de confirmação.");
+                    return;
+                }
+            }
+
             const calculatedSeconds = appState.timer_state.mode === 'pomodoro'
                 ? (appState.timer_state.total_focus_seconds_this_session || 0) + (appState.timer_state.pomodoro_phase === 'focus' ? (POMODORO_FOCUS_SECONDS - appState.timer_state.seconds) : 0)
                 : appState.timer_state.seconds;
@@ -66,6 +76,11 @@
                     });
                 }
             });
+
+            // Pilar 1 - Revisão Rápida: contabiliza mesmo em sessão parcial, já que a revisão foi feita de verdade
+            if (currentStep.pilar === 1) {
+                appState.study_cycle.quick_reviews_completed = (appState.study_cycle.quick_reviews_completed || 0) + 1;
+            }
 
             appState.study_logs.push({
                 id: "log-" + Date.now(),
