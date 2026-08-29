@@ -62,7 +62,7 @@
                     `Materia_${s.name}`,
                     `Peso ${s.weight}, ${s.expected_questions} questões no edital, ${s.topics.filter(t => t.completed).length}/${s.topics.length} aulas concluídas, ` +
                     `Status: ${s.isActive ? 'Ativa' : 'Pausada'}, ` +
-                    `Revisão Estratégica: ${s.isStrategicReview ? 'Sim (matéria já concluída, em modo de revisão contínua)' : 'Não'}`
+                    `Modo Revisão: ${s.review_only_mode ? 'Sim (marcado manualmente pelo usuário como somente revisão)' : (s.isStrategicReview ? 'Sim (matéria 100% concluída, em modo de revisão contínua automático)' : 'Não, em estudo ativo')}`
                 ])
             ];
             downloadCSV(headers, rows, `controle_estudos_contexto_${Date.now()}.csv`);
