@@ -19,6 +19,27 @@
             updateUI();
         }
 
+        // Alterna manualmente o status da matéria entre "Estudo Ativo" (avança pelos tópicos pendentes
+        // normalmente) e "Somente Revisão" (entra no ciclo só no modo de revisão periódica — o mesmo "Tudão"
+        // que já existe para matérias 100% concluídas). É sempre uma decisão do usuário: não mexe no
+        // progresso real dos tópicos (não marca nada como concluído à força), então o % de aulas concluídas
+        // no Cadastro continua honesto mesmo com a matéria já rodando em modo revisão.
+        async function toggleReviewOnlyMode(subjectId) {
+            const subj = appState.subjects.find(s => s.id === subjectId);
+            if (!subj) return;
+
+            if (!subj.review_only_mode) {
+                const confirmed = await customConfirm(
+                    `Marcar "${subj.name}" como Somente Revisão?\n\nA matéria para de avançar pelos tópicos pendentes e passa a entrar no ciclo só no modo de revisão periódica (o mesmo "Tudão" das matérias 100% concluídas). O progresso atual dos tópicos não é alterado — você pode voltar pra Estudo Ativo quando quiser.`
+                );
+                if (!confirmed) return;
+            }
+
+            subj.review_only_mode = !subj.review_only_mode;
+            regenerateSmartCycle(false);
+            updateUI();
+        }
+
         function moveSubject(subjectId, direction) {
             const idx = appState.subjects.findIndex(s => s.id === subjectId);
             const newIdx = idx + direction;
@@ -167,7 +188,7 @@
             appState.subjects.forEach((s, idx) => {
                 const div = document.createElement('div');
                 div.className = "error-card-modern";
-                div.style.borderColor = s.isStrategicReview ? "var(--warning)" : "var(--border)";
+                div.style.borderColor = (s.isStrategicReview || s.review_only_mode) ? "var(--warning)" : "var(--border)";
                 if (!s.isActive) div.style.opacity = "0.6";
 
                 const perf = getSubjectAveragePerformance(s.name);
@@ -199,7 +220,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px;">
                         <div style="flex:1;">
                             <strong>${escapeHTML(s.name)}</strong> <span class="badge badge-purple">Peso ${s.weight}</span>
-                            ${s.isStrategicReview ? '<span class="badge badge-warning">Revisão Estratégica Ativa</span>' : ''}
+                            ${s.review_only_mode ? '<span class="badge badge-warning">Somente Revisão (manual)</span>' : (s.isStrategicReview ? '<span class="badge badge-warning">Revisão Estratégica Ativa</span>' : '')}
                             ${isBoosted ? '<span class="badge badge-danger">Prioridade elevada</span>' : ''}
                             ${!s.isActive ? '<span class="badge badge-purple">Pausada</span>' : ''}
                             <div style="margin-top:8px;">
@@ -218,8 +239,9 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display:flex; gap:8px; margin-top:12px;">
+                    <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
                         <button class="filter-chip" style="padding: 5px 10px; background: var(--bg-card); font-size: 11px;" onclick="toggleSubjectActive('${s.id}')"><i data-lucide="${s.isActive ? 'pause' : 'play'}" style="width:12px; height:12px; vertical-align:middle;"></i> ${s.isActive ? 'Pausar' : 'Reativar'}</button>
+                        <button class="filter-chip" style="padding: 5px 10px; background: ${s.review_only_mode ? 'var(--warning-alpha)' : 'var(--bg-card)'}; color: ${s.review_only_mode ? 'var(--warning)' : 'var(--text-main)'}; font-size: 11px;" onclick="toggleReviewOnlyMode('${s.id}')" title="Escolha manualmente se a matéria está em estudo normal ou só em modo revisão"><i data-lucide="${s.review_only_mode ? 'refresh-cw' : 'graduation-cap'}" style="width:12px; height:12px; vertical-align:middle;"></i> ${s.review_only_mode ? 'Voltar pra Estudo Ativo' : 'Marcar como Somente Revisão'}</button>
                         <button class="filter-chip" style="padding: 5px 10px; background: var(--primary-alpha); color: var(--primary-text); font-size: 11px;" onclick="toggleSubjectTopicsExpanded('${s.id}')"><i data-lucide="${isExpanded ? 'chevron-up' : 'list'}" style="width:12px; height:12px; vertical-align:middle;"></i> ${isExpanded ? 'Ocultar Aulas' : 'Ver/Gerenciar Aulas'}</button>
                     </div>
                     ${isExpanded ? `
@@ -291,6 +313,7 @@
                     expected_questions: questions,
                     isActive: true,
                     isStrategicReview: false,
+                    review_only_mode: false,
                     last_tudao_review_date: null,
                     topics: topicsArr
                 });
