@@ -91,6 +91,13 @@
             document.getElementById('btn-save-error').innerHTML = '<i data-lucide="check-circle"></i> Salvar Alterações';
             document.getElementById('btn-cancel-error-edit').style.display = 'inline-flex';
 
+            // Se já tem matéria, causa ou link preenchidos, abre os detalhes de cara — senão, ficariam
+            // escondidos e a pessoa nem saberia que aquele erro já tem essa informação.
+            const detailsEl = document.getElementById('error-form-extra-details');
+            if ((err.subject_id || err.questions_link || err.cause) && detailsEl.style.display === 'none') {
+                toggleErrorFormDetails();
+            }
+
             document.getElementById('error-form-title-context').scrollIntoView({ behavior: 'smooth' });
             lucide.createIcons();
         }
@@ -102,9 +109,11 @@
             document.getElementById('error-manual-subject-link').value = "";
             document.getElementById('error-manual-questions-link').value = "";
             document.getElementById("error-manual-cause").selectedIndex = 0;
-            document.getElementById('error-form-title-context').innerHTML = '<i data-lucide="plus" style="width:16px; height:16px;"></i> Registrar Novo Erro (completo)';
+            document.getElementById('error-form-title-context').innerHTML = '<i data-lucide="plus" style="width:16px; height:16px;"></i> Registrar Erro';
             document.getElementById('btn-save-error').innerHTML = '<i data-lucide="save"></i> Gravar no Caderno de Erros';
             document.getElementById('btn-cancel-error-edit').style.display = 'none';
+            const detailsEl = document.getElementById('error-form-extra-details');
+            if (detailsEl.style.display !== 'none') toggleErrorFormDetails();
             lucide.createIcons();
         }
 
@@ -139,6 +148,31 @@
         function setErrorCriticalityFilter(value) {
             currentErrorCriticalityFilter = value;
             renderErrorNotebook();
+        }
+
+        // Mostra/esconde os campos opcionais do formulário (matéria, causa, link) — ficam escondidos
+        // por padrão pra manter o cadastro rápido: só "o que aconteceu" e "a solução".
+        function toggleErrorFormDetails() {
+            const el = document.getElementById('error-form-extra-details');
+            const btn = document.getElementById('btn-toggle-error-details');
+            const isOpen = el.style.display !== 'none';
+            el.style.display = isOpen ? 'none' : 'block';
+            btn.innerHTML = `<i data-lucide="${isOpen ? 'chevron-down' : 'chevron-up'}" style="width:12px; height:12px; vertical-align:middle;"></i> ${isOpen ? 'Adicionar detalhes (opcional)' : 'Ocultar detalhes'}`;
+            lucide.createIcons();
+        }
+
+        // Mostra/esconde estatísticas, gráficos, revisão ativa/PDF e filtros — ficam escondidos por padrão
+        // pra manter a tela principal focada só na lista de erro + solução.
+        function toggleErrorAdvancedTools() {
+            const el = document.getElementById('error-advanced-tools');
+            const btn = document.getElementById('btn-toggle-error-tools');
+            const isOpen = el.style.display !== 'none';
+            el.style.display = isOpen ? 'none' : 'block';
+            btn.innerHTML = `<i data-lucide="sliders-horizontal" style="width:13px; height:13px; vertical-align:middle;"></i> ${isOpen ? 'Ocultar filtros e ferramentas' : 'Filtros e ferramentas avançadas'}`;
+            lucide.createIcons();
+            // Os gráficos podem ter renderizado com tamanho errado enquanto estavam escondidos — redesenha
+            // agora que o container ficou visível de verdade.
+            if (!isOpen) renderErrorDashboard();
         }
 
         function toggleErrorCardExpand(errorId) {
@@ -311,6 +345,37 @@
             }
         }
 
+        // Detalhes extras do erro (causa, criticidade, reincidência, data) — escondidos por padrão, só
+        // aparecem se a pessoa clicar em "Ver detalhes" no menu ⋮. A ideia é manter o card do dia a dia
+        // só com erro + solução, e deixar o resto disponível pra quem quiser se aprofundar.
+        function renderErrorExtraDetails(err) {
+            const criticality = getErrorCriticality(err);
+            const criticalityBadge = criticality === 'alta' ? '<span class="badge badge-danger">Prioridade Crítica</span>' : (criticality === 'media' ? '<span class="badge badge-warning">Atenção</span>' : '<span class="badge badge-purple">Normal</span>');
+            const recurrenceBadge = err.recurrence_count > 0 ? `<span class="badge badge-warning">🔁 Reincidência (${err.recurrence_count}x)</span>` : '';
+            const causeInfo = err.cause ? ERROR_CAUSES[err.cause] : null;
+            const causeBlock = causeInfo
+                ? `<div style="display:flex; align-items:flex-start; gap:8px; background:var(--bg-input); border-radius:var(--radius-interactive); padding:10px 12px; margin-top:10px;">
+                       <i data-lucide="lightbulb" style="width:14px; height:14px; color:${causeInfo.color}; flex-shrink:0; margin-top:2px;"></i>
+                       <div><strong style="color:${causeInfo.color}; font-size:13px;">${causeInfo.label}</strong><br><small style="color:var(--text-muted);">${causeInfo.action}</small></div>
+                   </div>`
+                : `<div style="background:var(--warning-alpha); border-radius:var(--radius-interactive); padding:10px 12px; margin-top:10px;">
+                       <small style="color:var(--warning); font-weight:600; display:block; margin-bottom:6px;">Ainda não classificado — por que você errou?</small>
+                       <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                           ${Object.entries(ERROR_CAUSES).map(([key, c]) => `<button class="filter-chip" style="padding:4px 8px; background:var(--bg-card); font-size:11px;" onclick="classifyErrorCause('${err.id}','${key}')">${c.label}</button>`).join('')}
+                       </div>
+                   </div>`;
+            return `
+                <div style="margin-top:14px; padding-top:14px; border-top:1px dashed var(--border);">
+                    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px;">
+                        ${criticalityBadge}
+                        ${recurrenceBadge}
+                        <span class="badge badge-purple">${new Date(err.timestamp).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                    ${causeBlock}
+                </div>
+            `;
+        }
+
         function renderErrorNotebook() {
             const errorContainer = document.getElementById('error-notebook-container');
             if (!errorContainer) return;
@@ -355,64 +420,36 @@
                 errorContainer.appendChild(groupHeader);
 
                 group.items.forEach(err => {
-                    const criticality = getErrorCriticality(err);
-                    const borderColor = criticality === 'alta' ? 'var(--danger)' : (criticality === 'media' ? 'var(--warning)' : 'var(--border)');
-                    const criticalityBadge = criticality === 'alta' ? '<span class="badge badge-danger">Prioridade Crítica</span>' : (criticality === 'media' ? '<span class="badge badge-warning">Atenção</span>' : '');
-                    const recurrenceBadge = err.recurrence_count > 0 ? `<span class="badge badge-warning">🔁 Reincidência (${err.recurrence_count}x)</span>` : '';
                     const reviewInfo = err.view_count > 0
-                        ? `Revisado ${err.view_count}x • Última vez: ${new Date(err.last_viewed_at).toLocaleDateString('pt-BR')}`
-                        : 'Nunca revisado desde o cadastro';
-
-                    const causeInfo = err.cause ? ERROR_CAUSES[err.cause] : null;
-                    const causeBlock = causeInfo
-                        ? `<div style="display:flex; align-items:flex-start; gap:8px; background:var(--bg-input); border-radius:var(--radius-interactive); padding:10px 12px; margin-bottom:10px;">
-                               <i data-lucide="lightbulb" style="width:14px; height:14px; color:${causeInfo.color}; flex-shrink:0; margin-top:2px;"></i>
-                               <div><strong style="color:${causeInfo.color}; font-size:13px;">${causeInfo.label}</strong><br><small style="color:var(--text-muted);">${causeInfo.action}</small></div>
-                           </div>`
-                        : `<div style="background:var(--warning-alpha); border-radius:var(--radius-interactive); padding:10px 12px; margin-bottom:10px;">
-                               <small style="color:var(--warning); font-weight:600; display:block; margin-bottom:6px;">Ainda não classificado — por que você errou?</small>
-                               <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                                   ${Object.entries(ERROR_CAUSES).map(([key, c]) => `<button class="filter-chip" style="padding:4px 8px; background:var(--bg-card); font-size:11px;" onclick="classifyErrorCause('${err.id}','${key}')">${c.label}</button>`).join('')}
-                               </div>
-                           </div>`;
+                        ? `Revisado ${err.view_count}x`
+                        : 'Nunca revisado';
 
                     const isExpanded = expandedErrorIds.has(err.id);
 
                     const card = document.createElement('div');
                     card.className = "error-card-modern";
-                    card.style.borderColor = borderColor;
+                    card.style.borderColor = "var(--border)";
                     card.innerHTML = `
-                        <div style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding-right: 40px;" onclick="toggleErrorCardExpand('${err.id}')">
-                            <i data-lucide="${isExpanded ? 'chevron-down' : 'chevron-right'}" style="width:16px; height:16px; flex-shrink:0; margin-top:3px; color:var(--text-muted);"></i>
-                            <div style="flex:1; min-width:0;">
-                                <p style="font-size:14px; font-weight:600; margin:0; ${isExpanded ? '' : 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'}">${escapeHTML(err.what_went_wrong)}</p>
-                                <small style="color:var(--text-muted); font-size:11px;">${new Date(err.timestamp).toLocaleDateString()}${criticality === 'alta' ? ' • 🔴 Crítico' : (criticality === 'media' ? ' • 🟡 Atenção' : '')}${err.recurrence_count > 0 ? ` • 🔁 ${err.recurrence_count}x` : ''}</small>
-                            </div>
-                        </div>
-                        <div style="position:absolute; top:14px; right:14px;">
+                        <div style="position:absolute; top:14px; right:14px; display:flex; gap:6px; align-items:center;">
+                            ${err.questions_link ? `<a href="${escapeHTML(err.questions_link)}" target="_blank" rel="noopener" title="Caderno de Questões deste erro" style="color:var(--primary-text); display:inline-flex;"><i data-lucide="link" style="width:15px; height:15px;"></i></a>` : ''}
                             <button class="filter-chip" style="padding:4px 8px; background: var(--bg-card); font-size:12px;" onclick="toggleErrorMenu(event, '${err.id}')" title="Mais ações"><i data-lucide="more-vertical" style="width:14px; height:14px;"></i></button>
                             <div id="error-menu-${err.id}" class="topic-actions-menu">
                                 <button onclick="editErrorItem('${err.id}')"><i data-lucide="pencil" style="width:13px; height:13px;"></i> Editar</button>
+                                <button onclick="toggleErrorCardExpand('${err.id}')"><i data-lucide="info" style="width:13px; height:13px;"></i> ${isExpanded ? 'Ocultar' : 'Ver'} detalhes</button>
                                 <button onclick="deleteErrorItem('${err.id}')" style="color:var(--danger);"><i data-lucide="trash-2" style="width:13px; height:13px;"></i> Excluir</button>
                             </div>
                         </div>
-                        ${isExpanded ? `
-                        <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
-                            ${causeBlock}
-                            <div style="margin-bottom:10px; display:flex; flex-wrap:wrap; gap:6px;">
-                                ${criticalityBadge}
-                                ${recurrenceBadge}
-                            </div>
-                            <div style="border-left: 3px solid var(--success); padding-left: 10px;">
-                                <small style="color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.3px;">A regra certa</small>
-                                <p style="font-size:14px; white-space:pre-wrap; margin-top:2px;">${err.correct_rule ? escapeHTML(err.correct_rule) : '<span style="color:var(--text-muted);">Ainda não preenchida.</span>'}</p>
-                            </div>
-                            ${err.questions_link ? `<div style="margin-top:10px;"><a href="${escapeHTML(err.questions_link)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding: 6px 12px; background: var(--primary-alpha); text-decoration:none; font-size:12px;" onclick="event.stopPropagation();"><i data-lucide="link" style="width:12px; height:12px;"></i>&nbsp;Caderno de Questões deste erro</a></div>` : ''}
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top: 1px solid var(--border);">
-                                <small style="color:var(--text-muted); font-size:11px;">${reviewInfo}</small>
-                                <button class="filter-chip" style="padding: 4px 10px; background: var(--primary-alpha); color: var(--primary-text); font-size: 11px;" onclick="event.stopPropagation(); markErrorAsReviewed('${err.id}')"><i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> Marcar como Revisado</button>
-                            </div>
-                        </div>` : ''}
+                        <div style="padding-right: 70px;">
+                            <p style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Erro</p>
+                            <p style="font-size:14px; font-weight:600; margin:0 0 12px;">${escapeHTML(err.what_went_wrong)}</p>
+                            <p style="font-size:11px; color:var(--success); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Solução</p>
+                            <p style="font-size:14px; margin:0; white-space:pre-wrap;">${err.correct_rule ? escapeHTML(err.correct_rule) : '<span style="color:var(--text-muted);">Ainda não preenchida — clique em Editar pra completar.</span>'}</p>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top: 1px solid var(--border);">
+                            <small style="color:var(--text-muted); font-size:11px;">${reviewInfo}</small>
+                            <button class="filter-chip" style="padding: 4px 10px; background: var(--primary-alpha); color: var(--primary-text); font-size: 11px;" onclick="markErrorAsReviewed('${err.id}')"><i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> Marcar como Revisado</button>
+                        </div>
+                        ${isExpanded ? renderErrorExtraDetails(err) : ''}
                     `;
                     errorContainer.appendChild(card);
                 });
