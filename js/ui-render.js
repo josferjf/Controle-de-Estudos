@@ -722,6 +722,7 @@
         // --- MELHORIA 2: FLUXOS COMPLETOS PARA EDIÇÃO E EXCLUSÃO UNITÁRIA DE DISCIPLINAS ---
         // --- CADASTRO DE MATÉRIAS: RENDERIZAÇÃO COM PROGRESSO, % DO EDITAL, ATIVO/PAUSADO E TÓPICOS INDIVIDUAIS ---
         let expandedSubjectIds = new Set();
+        let showPausedSubjects = false;
 
         function renderConsistencyHeatmap() {
             const container = document.getElementById('consistency-heatmap-container');
