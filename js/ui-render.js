@@ -259,14 +259,21 @@
                 document.getElementById('stat-global-performance-delta').innerText = "";
             }
 
-            const totalT = appState.subjects.reduce((acc,s)=>acc+s.topics.length, 0);
-            const doneT = appState.subjects.reduce((acc,s)=>acc+s.topics.filter(t=>t.completed).length, 0);
+            // A previsão de conclusão é sobre o CICLO ATIVO (o que você realmente está estudando agora) —
+            // por isso só considera matérias ativas. Pausar uma matéria tem que reduzir essa previsão, já
+            // que ela deixa de fazer parte do que falta terminar por enquanto. (A "Cobertura do Edital"
+            // abaixo é diferente: aquela reflete o edital inteiro, pausada ou não, de propósito.)
+            const activeSubjectsForCompletion = appState.subjects.filter(s => s.isActive && !s.review_only_mode && !s.isStrategicReview);
+            const totalT = activeSubjectsForCompletion.reduce((acc,s)=>acc+s.topics.length, 0);
+            const doneT = activeSubjectsForCompletion.reduce((acc,s)=>acc+s.topics.filter(t=>t.completed).length, 0);
 
-            // Cobertura do Edital ponderada pelo nº de questões esperadas de cada matéria, não apenas pela contagem bruta de tópicos
-            const totalEditalQuestionsForCoverage = appState.subjects.reduce((acc, s) => acc + (parseInt(s.expected_questions) || 0), 0);
+            // Cobertura do Edital ponderada pelo nº de questões esperadas de cada matéria — considera só
+            // matérias ativas (pausar tira a matéria dessa conta; reativar volta a contabilizá-la).
+            const activeSubjectsForCoverage = appState.subjects.filter(s => s.isActive);
+            const totalEditalQuestionsForCoverage = activeSubjectsForCoverage.reduce((acc, s) => acc + (parseInt(s.expected_questions) || 0), 0);
             let coveragePercentage;
             if (totalEditalQuestionsForCoverage > 0) {
-                const weightedCoverage = appState.subjects.reduce((acc, s) => {
+                const weightedCoverage = activeSubjectsForCoverage.reduce((acc, s) => {
                     const subjTotal = s.topics.length;
                     const subjDone = s.topics.filter(t => t.completed).length;
                     const subjCompletionRatio = subjTotal > 0 ? (subjDone / subjTotal) : 0;
