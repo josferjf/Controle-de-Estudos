@@ -184,8 +184,14 @@
             configList.innerHTML = "";
 
             const totalEditalQuestions = appState.subjects.reduce((acc, s) => acc + (parseInt(s.expected_questions) || 0), 0);
+            const pausedCount = appState.subjects.filter(s => !s.isActive).length;
 
-            appState.subjects.forEach((s, idx) => {
+            // Matérias pausadas ficam escondidas por padrão (não deletadas!) pra manter o Cadastro focado
+            // só no que está realmente ativo no ciclo. Um alternador embaixo mostra/esconde quando quiser.
+            const visibleSubjects = showPausedSubjects ? appState.subjects : appState.subjects.filter(s => s.isActive);
+
+            visibleSubjects.forEach((s) => {
+                const idx = appState.subjects.indexOf(s);
                 const div = document.createElement('div');
                 div.className = "error-card-modern";
                 div.style.borderColor = (s.isStrategicReview || s.review_only_mode) ? "var(--warning)" : "var(--border)";
@@ -256,7 +262,27 @@
                 `;
                 configList.appendChild(div);
             });
+
+            const pausedToggleContainer = document.getElementById('config-subjects-paused-toggle-container');
+            if (pausedToggleContainer) {
+                if (pausedCount > 0) {
+                    pausedToggleContainer.innerHTML = `
+                        <button class="filter-chip" style="padding: 6px 12px; font-size: 12px;" onclick="toggleShowPausedSubjects()">
+                            <i data-lucide="${showPausedSubjects ? 'eye-off' : 'eye'}" style="width:13px; height:13px; vertical-align:middle;"></i>
+                            ${showPausedSubjects ? 'Ocultar matérias pausadas' : `Mostrar ${pausedCount} matéria(s) pausada(s)`}
+                        </button>
+                    `;
+                } else {
+                    pausedToggleContainer.innerHTML = '';
+                }
+            }
+
             lucide.createIcons();
+        }
+
+        function toggleShowPausedSubjects() {
+            showPausedSubjects = !showPausedSubjects;
+            renderSubjectsList();
         }
 
         function addSubject() {
