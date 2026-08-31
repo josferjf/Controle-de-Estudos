@@ -379,7 +379,20 @@
             const remT = totalT - doneT;
             settleMetasBalance();
             const debtHours = appState.study_cycle.pending_metas_balance || 0;
-            const daysNeeded = Math.ceil(((remT * 1.5) + debtHours) / dailyH);
+
+            // Horas por aula: em vez de um valor fixo chutado, usa a média REAL do seu histórico — soma o
+            // tempo de todas as sessões de estudo normais (exclui as de revisão, que não avançam aula nova)
+            // e divide pela quantidade de aulas já concluídas. Com pouco histórico (menos de 3 aulas
+            // concluídas), a média ainda não é confiável, então usa uma estimativa inicial de 3h/aula.
+            const regularSessionSeconds = appState.study_logs
+                .filter(l => !l.snapshot_topic_title.startsWith('REVISÃO') && !l.snapshot_topic_title.startsWith('MODO REVISÃO'))
+                .reduce((acc, l) => acc + (l.liquid_seconds || 0), 0);
+            const totalTopicsCompletedSoFar = appState.subjects.reduce((acc, s) => acc + s.topics.filter(t => t.completed).length, 0);
+            const avgHoursPerTopic = totalTopicsCompletedSoFar >= 3
+                ? (regularSessionSeconds / 3600) / totalTopicsCompletedSoFar
+                : 3;
+
+            const daysNeeded = Math.ceil(((remT * avgHoursPerTopic) + debtHours) / dailyH);
             if(remT <= 0 && debtHours <= 0) { document.getElementById('config-estimated-date').innerText = "Edital Concluído!"; }
             else { document.getElementById('config-estimated-date').innerText = `Aprox. ${daysNeeded} dias ativos`; }
 
@@ -389,7 +402,7 @@
                 if (remT <= 0 && debtHours <= 0) {
                     completionDateEl.innerText = "Edital Concluído!";
                 } else {
-                    const predictedDate = computeEstimatedCompletionDate((remT * 1.5) + debtHours);
+                    const predictedDate = computeEstimatedCompletionDate((remT * avgHoursPerTopic) + debtHours);
                     completionDateEl.innerText = predictedDate.toLocaleDateString('pt-BR');
                 }
             }
