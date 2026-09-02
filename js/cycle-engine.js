@@ -23,7 +23,7 @@
                 } else {
                     baseWeight = parseInt(subj.weight) || 1;
                 }
-                const performance = getSubjectAveragePerformance(subj.name);
+                const performance = getSubjectAveragePerformance(subj.id);
                 const targetScore = appState.user_configuration.target_score || 85;
                 const performanceBoost = (performance !== null && performance < targetScore) ? 1 : 0;
 
@@ -205,8 +205,11 @@
         }
 
         // Retorna o aproveitamento médio (%) da matéria com base nas sessões com questões registradas, ou null se não houver dados
-        function getSubjectAveragePerformance(subjectName) {
-            const logs = appState.study_logs.filter(l => l.snapshot_subject_name === subjectName && l.questions_attempted > 0);
+        // Casa pelo ID da matéria (não pelo nome!) — se casasse por nome, uma matéria excluída e recriada
+        // com o mesmo nome (ou só coincidência de nome) herdaria o desempenho antigo de outra matéria, sem
+        // ter nenhuma relação real com ela. O ID é único e nunca se repete entre matérias diferentes.
+        function getSubjectAveragePerformance(subjectId) {
+            const logs = appState.study_logs.filter(l => l.subject_id === subjectId && l.questions_attempted > 0);
             if (logs.length === 0) return null;
             const totalQ = logs.reduce((a, l) => a + l.questions_attempted, 0);
             const totalC = logs.reduce((a, l) => a + l.questions_correct, 0);
