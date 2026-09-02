@@ -197,7 +197,7 @@
                 div.style.borderColor = (s.isStrategicReview || s.review_only_mode) ? "var(--warning)" : "var(--border)";
                 if (!s.isActive) div.style.opacity = "0.6";
 
-                const perf = getSubjectAveragePerformance(s.name);
+                const perf = getSubjectAveragePerformance(s.id);
                 const isBoosted = perf !== null && perf < (appState.user_configuration.target_score || 85);
                 const completedCount = s.topics.filter(t => t.completed).length;
                 const progressPct = s.topics.length > 0 ? Math.round((completedCount / s.topics.length) * 100) : 0;
