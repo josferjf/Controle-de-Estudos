@@ -388,7 +388,7 @@
                 .filter(l => !l.snapshot_topic_title.startsWith('REVISÃO') && !l.snapshot_topic_title.startsWith('MODO REVISÃO'))
                 .reduce((acc, l) => acc + (l.liquid_seconds || 0), 0);
             const totalTopicsCompletedSoFar = appState.subjects.reduce((acc, s) => acc + s.topics.filter(t => t.completed).length, 0);
-            const avgHoursPerTopic = totalTopicsCompletedSoFar >= 3
+            const avgHoursPerTopic = (totalTopicsCompletedSoFar >= 3 && regularSessionSeconds > 0)
                 ? (regularSessionSeconds / 3600) / totalTopicsCompletedSoFar
                 : 3;
 
