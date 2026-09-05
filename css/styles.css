@@ -334,6 +334,30 @@
             box-shadow: 0 0 0 3px var(--primary-alpha);
         }
 
+        [contenteditable]:empty:before {
+            content: attr(data-placeholder);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        [contenteditable]:focus {
+            outline: none;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px var(--primary-alpha);
+        }
+
+        [contenteditable] table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        [contenteditable] table td, [contenteditable] table th {
+            border: 1px solid var(--border);
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
         .btn:focus-visible {
             outline: none;
             box-shadow: 0 0 0 3px var(--primary-alpha);
