@@ -422,15 +422,35 @@
                 </div>
 
                 <div style="background-color: var(--bg-card); padding: 20px; border-radius: var(--radius-card); border: 1px solid var(--border); margin-bottom: 25px;">
-                    <h4 id="error-form-title-context" style="font-size: 14px; margin-bottom: 15px; font-weight:700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="plus" style="width:16px; height:16px;"></i> Registrar Erro</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom: 15px;">
+                        <h4 id="error-form-title-context" style="font-size: 14px; font-weight:700; display: inline-flex; align-items: center; gap: 6px; margin: 0;"><i data-lucide="plus" style="width:16px; height:16px;"></i> Registrar Erro</h4>
+                        <button type="button" class="filter-chip" id="btn-start-batch" style="padding: 5px 10px; font-size: 11px;" onclick="startErrorBatch()" title="Pra quando você errou várias questões numa bateria e quer lançar uma por uma, em sequência"><i data-lucide="layers" style="width:12px; height:12px; vertical-align:middle;"></i> Lançar leva de erros</button>
+                    </div>
+                    <div id="error-batch-progress" style="display:none; background: var(--primary-alpha); color: var(--primary-text); border-radius: var(--radius-interactive); padding: 8px 12px; margin-bottom: 15px; font-size: 12px; display:flex; justify-content:space-between; align-items:center;">
+                        <span id="error-batch-progress-text"></span>
+                        <button type="button" class="filter-chip" style="padding:3px 8px; font-size:11px;" onclick="cancelErrorBatch()">Encerrar leva</button>
+                    </div>
                     <input type="hidden" id="edit-error-id" value="">
                     <div class="form-group">
                         <label>O que aconteceu</label>
                         <input type="text" id="error-manual-what" placeholder="Ex: Troquei prazo de recurso de 5 dias por 10 dias">
                     </div>
                     <div class="form-group">
+                        <label>Assunto específico dentro da matéria</label>
+                        <input type="text" id="error-manual-specific-topic" placeholder="Ex: Classificação dos atos administrativos">
+                    </div>
+                    <div class="form-group">
                         <label>A solução</label>
-                        <textarea id="error-manual-rule" rows="3" placeholder="Escreva a regra certa como se fosse explicar pra você mesmo daqui a 1 mês..."></textarea>
+                        <div id="error-rule-toolbar" style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px; background: var(--bg-input); border: 1px solid var(--border); border-bottom:none; border-radius: var(--radius-interactive) var(--radius-interactive) 0 0; padding:6px;">
+                            <button type="button" class="filter-chip" style="padding:4px 8px;" onmousedown="event.preventDefault();" onclick="document.execCommand('bold')" title="Negrito"><i data-lucide="bold" style="width:13px; height:13px;"></i></button>
+                            <button type="button" class="filter-chip" style="padding:4px 8px;" onmousedown="event.preventDefault();" onclick="document.execCommand('italic')" title="Itálico"><i data-lucide="italic" style="width:13px; height:13px;"></i></button>
+                            <button type="button" class="filter-chip" style="padding:4px 8px;" onmousedown="event.preventDefault();" onclick="document.execCommand('underline')" title="Sublinhado"><i data-lucide="underline" style="width:13px; height:13px;"></i></button>
+                            <button type="button" class="filter-chip" style="padding:4px 8px;" onmousedown="event.preventDefault();" onclick="document.execCommand('insertUnorderedList')" title="Lista com marcadores"><i data-lucide="list" style="width:13px; height:13px;"></i></button>
+                            <button type="button" class="filter-chip" style="padding:4px 8px;" onmousedown="event.preventDefault();" onclick="document.execCommand('insertOrderedList')" title="Lista numerada"><i data-lucide="list-ordered" style="width:13px; height:13px;"></i></button>
+                            <button type="button" class="filter-chip" style="padding:4px 8px;" onmousedown="event.preventDefault();" onclick="insertRuleTable()" title="Inserir tabela"><i data-lucide="table" style="width:13px; height:13px;"></i></button>
+                            <button type="button" class="filter-chip" style="padding:4px 8px;" onmousedown="event.preventDefault();" onclick="document.execCommand('removeFormat')" title="Limpar formatação"><i data-lucide="eraser" style="width:13px; height:13px;"></i></button>
+                        </div>
+                        <div id="error-manual-rule" contenteditable="true" style="min-height:100px; max-height:320px; overflow-y:auto; background: var(--bg-input); border: 1px solid var(--border); border-radius: 0 0 var(--radius-interactive) var(--radius-interactive); padding: 11px 14px; color: var(--text-main); font-size: var(--fs-base);" data-placeholder="Escreva a regra certa como se fosse explicar pra você mesmo daqui a 1 mês... pode usar negrito, listas e até tabela."></div>
                     </div>
 
                     <button type="button" class="filter-chip" id="btn-toggle-error-details" style="padding: 5px 10px; font-size: 11px; margin-bottom: 12px;" onclick="toggleErrorFormDetails()"><i data-lucide="chevron-down" style="width:12px; height:12px; vertical-align:middle;"></i> Adicionar detalhes (opcional)</button>
