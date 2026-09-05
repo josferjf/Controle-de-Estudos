@@ -202,3 +202,12 @@ function escapeHTML(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+// Remove tags HTML de um texto (usado pra exportar em CSV ou buscar texto puro a partir do conteúdo
+// do editor de texto rico da solução do Caderno de Erros, que salva como HTML).
+function stripHTML(html) {
+    if (!html) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+}
