@@ -11,15 +11,22 @@
             pegadinha: { label: 'Caí numa pegadinha da banca',      action: 'Grave o padrão dessa armadilha específica pra reconhecer da próxima vez.', color: '#8b5cf6' }
         };
 
+        // Estado da "leva de erros": permite lançar vários erros da mesma matéria em sequência,
+        // sem precisar reabrir o formulário do zero a cada um (ex: bateria de 30 questões, errou 5).
+        let errorBatchState = { active: false, subjectId: null, subjectName: '', remaining: 0, total: 0 };
+
         function addManualError() {
             const what = document.getElementById('error-manual-what').value.trim();
-            const rule = document.getElementById('error-manual-rule').value.trim();
+            const specificTopic = document.getElementById('error-manual-specific-topic').value.trim();
+            const ruleEl = document.getElementById('error-manual-rule');
+            const rule = ruleEl.innerHTML.trim();
+            const ruleIsEmpty = ruleEl.innerText.trim() === '';
             const cause = document.getElementById('error-manual-cause').value;
             const subjectId = document.getElementById('error-manual-subject-link').value || null;
             const questionsLink = document.getElementById('error-manual-questions-link').value.trim();
             const editId = document.getElementById('edit-error-id').value;
 
-            if (!what || !rule) { customAlert("Preencha 'O que eu errei' e 'A regra certa'!"); return; }
+            if (!what || ruleIsEmpty) { customAlert("Preencha 'O que aconteceu' e 'A solução'!"); return; }
 
             const subj = subjectId ? appState.subjects.find(s => s.id === subjectId) : null;
 
@@ -30,6 +37,7 @@
                 err.subject_id = subjectId;
                 err.snapshot_subject_name = subj ? subj.name : "Sem matéria vinculada";
                 err.what_went_wrong = what;
+                err.specific_topic = specificTopic;
                 err.cause = cause;
                 err.correct_rule = rule;
                 err.questions_link = questionsLink || '';
@@ -52,6 +60,7 @@
                 subject_id: subjectId,
                 snapshot_subject_name: subj ? subj.name : "Sem matéria vinculada",
                 what_went_wrong: what,
+                specific_topic: specificTopic,
                 cause: cause,
                 correct_rule: rule,
                 questions_link: questionsLink || '',
@@ -64,13 +73,79 @@
             saveToDatabase();
             updateUI();
             populateErrorAuxSelects();
-            customAlert("Erro registrado no caderno!");
 
+            // Limpa só os campos de conteúdo (mantém matéria selecionada, útil tanto em leva quanto fora dela)
             document.getElementById('error-manual-what').value = "";
-            document.getElementById('error-manual-rule').value = "";
-            document.getElementById('error-manual-subject-link').value = "";
+            document.getElementById('error-manual-specific-topic').value = "";
+            ruleEl.innerHTML = "";
             document.getElementById('error-manual-questions-link').value = "";
             document.getElementById("error-manual-cause").selectedIndex = 0;
+
+            if (errorBatchState.active) {
+                errorBatchState.remaining--;
+                if (errorBatchState.remaining > 0) {
+                    updateErrorBatchProgressUI();
+                    document.getElementById('error-manual-what').focus();
+                    return;
+                } else {
+                    customAlert(`Leva concluída! Os ${errorBatchState.total} erros de ${errorBatchState.subjectName} foram registrados.`);
+                    cancelErrorBatch();
+                    return;
+                }
+            }
+
+            customAlert("Erro registrado no caderno!");
+        }
+
+        // "Lançar leva de erros": pra quando você fez uma bateria de questões e errou várias — pergunta
+        // quantas você errou e usa a matéria já selecionada no formulário (abre os detalhes se precisar),
+        // deixando pronto pra lançar uma atrás da outra em sequência.
+        async function startErrorBatch() {
+            populateErrorAuxSelects();
+            const detailsEl = document.getElementById('error-form-extra-details');
+            if (detailsEl.style.display === 'none') toggleErrorFormDetails();
+
+            const subjectSelect = document.getElementById('error-manual-subject-link');
+            if (!subjectSelect.value) {
+                customAlert("Primeiro escolha a matéria dessa bateria no campo 'Matéria', logo abaixo — depois clique em 'Lançar leva de erros' de novo.");
+                subjectSelect.focus();
+                return;
+            }
+
+            const qtyStr = await customPrompt("Quantas questões você errou nessa bateria?", "5");
+            if (qtyStr === null) return;
+            const qty = parseInt(qtyStr);
+            if (isNaN(qty) || qty <= 0 || qty > 100) {
+                customAlert("Informe um número válido (entre 1 e 100).");
+                return;
+            }
+
+            const subj = appState.subjects.find(s => s.id === subjectSelect.value);
+            errorBatchState = { active: true, subjectId: subjectSelect.value, subjectName: subj ? subj.name : "Sem matéria vinculada", remaining: qty, total: qty };
+
+            updateErrorBatchProgressUI();
+            document.getElementById('error-manual-what').focus();
+            document.getElementById('error-form-title-context').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateErrorBatchProgressUI() {
+            const el = document.getElementById('error-batch-progress');
+            const textEl = document.getElementById('error-batch-progress-text');
+            const done = errorBatchState.total - errorBatchState.remaining;
+            el.style.display = 'flex';
+            textEl.innerText = `Leva de ${errorBatchState.subjectName}: erro ${done + 1} de ${errorBatchState.total} (${done} já registrados)`;
+        }
+
+        function cancelErrorBatch() {
+            errorBatchState = { active: false, subjectId: null, subjectName: '', remaining: 0, total: 0 };
+            document.getElementById('error-batch-progress').style.display = 'none';
+        }
+
+        // Insere uma tabela simples (2 colunas x 2 linhas) no editor de texto rico da solução
+        function insertRuleTable() {
+            const html = `<table><tr><td>Célula</td><td>Célula</td></tr><tr><td>Célula</td><td>Célula</td></tr></table><p><br></p>`;
+            document.getElementById('error-manual-rule').focus();
+            document.execCommand('insertHTML', false, html);
         }
 
         // Preenche o formulário com os dados de um erro já registrado, pra permitir corrigir ou
@@ -80,10 +155,13 @@
             const err = appState.error_notebook.find(e => e.id === errorId);
             if (!err) return;
 
+            cancelErrorBatch();
+
             document.getElementById('edit-error-id').value = err.id;
             document.getElementById('error-manual-subject-link').value = err.subject_id || "";
             document.getElementById('error-manual-what').value = err.what_went_wrong || "";
-            document.getElementById('error-manual-rule').value = err.correct_rule || "";
+            document.getElementById('error-manual-specific-topic').value = err.specific_topic || "";
+            document.getElementById('error-manual-rule').innerHTML = err.correct_rule || "";
             document.getElementById('error-manual-questions-link').value = err.questions_link || "";
             document.getElementById('error-manual-cause').value = err.cause || "conteudo";
 
@@ -105,7 +183,8 @@
         function cancelErrorEdit() {
             document.getElementById('edit-error-id').value = "";
             document.getElementById('error-manual-what').value = "";
-            document.getElementById('error-manual-rule').value = "";
+            document.getElementById('error-manual-specific-topic').value = "";
+            document.getElementById('error-manual-rule').innerHTML = "";
             document.getElementById('error-manual-subject-link').value = "";
             document.getElementById('error-manual-questions-link').value = "";
             document.getElementById("error-manual-cause").selectedIndex = 0;
@@ -318,7 +397,7 @@
                 if (onlyUnreviewed && (err.view_count || 0) > 0) return false;
                 if (currentErrorCriticalityFilter !== 'all' && getErrorCriticality(err) !== currentErrorCriticalityFilter) return false;
                 if (searchTerm) {
-                    const haystack = `${err.snapshot_subject_name} ${err.what_went_wrong} ${err.correct_rule}`.toLowerCase();
+                    const haystack = `${err.snapshot_subject_name} ${err.what_went_wrong} ${err.specific_topic || ''} ${stripHTML(err.correct_rule)}`.toLowerCase();
                     if (!haystack.includes(searchTerm)) return false;
                 }
                 return true;
@@ -441,9 +520,10 @@
                         </div>
                         <div style="padding-right: 70px;">
                             <p style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Erro</p>
-                            <p style="font-size:14px; font-weight:600; margin:0 0 12px;">${escapeHTML(err.what_went_wrong)}</p>
+                            <p style="font-size:14px; font-weight:600; margin:0 0 2px;">${escapeHTML(err.what_went_wrong)}</p>
+                            ${err.specific_topic ? `<p style="font-size:12px; color:var(--text-muted); margin:0 0 12px;">📍 ${escapeHTML(err.specific_topic)}</p>` : '<div style="margin-bottom:12px;"></div>'}
                             <p style="font-size:11px; color:var(--success); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px;">Solução</p>
-                            <p style="font-size:14px; margin:0; white-space:pre-wrap;">${err.correct_rule ? escapeHTML(err.correct_rule) : '<span style="color:var(--text-muted);">Ainda não preenchida — clique em Editar pra completar.</span>'}</p>
+                            <div style="font-size:14px; margin:0;">${err.correct_rule && err.correct_rule.trim() ? err.correct_rule : '<span style="color:var(--text-muted);">Ainda não preenchida — clique em Editar pra completar.</span>'}</div>
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top: 1px solid var(--border);">
                             <small style="color:var(--text-muted); font-size:11px;">${reviewInfo}</small>
@@ -580,7 +660,8 @@
                 contentEl.innerHTML = `
                     <div style="text-align:center; padding: 30px 10px;">
                         <strong style="color:${titleColor}; display:block; margin-bottom: 10px;">${escapeHTML(err.snapshot_subject_name)}</strong>
-                        <h3 style="margin-bottom: 10px;">${escapeHTML(err.what_went_wrong)}</h3>
+                        <h3 style="margin-bottom: 4px;">${escapeHTML(err.what_went_wrong)}</h3>
+                        ${err.specific_topic ? `<p style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">📍 ${escapeHTML(err.specific_topic)}</p>` : ''}
                         <p style="margin-top: 20px; font-size: 13px; color: var(--text-muted);">Tente lembrar a regra certa antes de revelar.</p>
                     </div>
                 `;
@@ -596,7 +677,7 @@
                         ${causeInfo ? `<div style="display:flex; align-items:flex-start; gap:8px; background:var(--bg-input); border-radius:var(--radius-interactive); padding:10px 12px; margin-bottom:14px;"><i data-lucide="lightbulb" style="width:14px; height:14px; color:${causeInfo.color}; flex-shrink:0; margin-top:2px;"></i><div><strong style="color:${causeInfo.color}; font-size:13px;">${causeInfo.label}</strong><br><small style="color:var(--text-muted);">${causeInfo.action}</small></div></div>` : ''}
                         <div style="border-left: 3px solid var(--success); padding-left: 10px;">
                             <small style="color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.3px;">A regra certa</small>
-                            <p style="font-size:14px; white-space:pre-wrap; margin-top:2px;">${err.correct_rule ? escapeHTML(err.correct_rule) : '<span style="color:var(--text-muted);">Ainda não preenchida.</span>'}</p>
+                            <p style="font-size:14px; margin-top:2px;">${err.correct_rule ? err.correct_rule : '<span style="color:var(--text-muted);">Ainda não preenchida.</span>'}</p>
                         </div>
                         ${err.questions_link ? `<div style="margin-top:10px;"><a href="${escapeHTML(err.questions_link)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding: 6px 12px; background: var(--primary-alpha); text-decoration:none; font-size:12px;"><i data-lucide="link" style="width:12px; height:12px;"></i>&nbsp;Caderno de Questões deste erro</a></div>` : ''}
                     </div>
@@ -644,9 +725,10 @@
                         <strong>${escapeHTML(err.snapshot_subject_name)}</strong>
                         <span>${new Date(err.timestamp).toLocaleDateString('pt-BR')}</span>
                     </div>
-                    <p style="font-size:13px; font-weight:bold; margin-bottom:6px;">${escapeHTML(err.what_went_wrong)}</p>
+                    <p style="font-size:13px; font-weight:bold; margin-bottom:2px;">${escapeHTML(err.what_went_wrong)}</p>
+                    ${err.specific_topic ? `<div style="font-size:11px; color:#777; margin-bottom:6px;">📍 ${escapeHTML(err.specific_topic)}</div>` : ''}
                     <div style="font-size:11px; color:#555; margin-bottom:8px;">Por que errei: ${causeInfo ? causeInfo.label : "Não classificado"}</div>
-                    <p style="font-size:13px; white-space:pre-wrap;"><strong>Regra certa:</strong> ${err.correct_rule ? escapeHTML(err.correct_rule) : '-'}</p>
+                    <div style="font-size:13px;"><strong>Regra certa:</strong> ${err.correct_rule ? err.correct_rule : '-'}</div>
                 </div>
             `;
             }).join('');
