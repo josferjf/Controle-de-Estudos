@@ -19,13 +19,14 @@
         }
 
         function exportErrorNotebookToCSV() {
-            const headers = ['Data', 'Materia', 'O_Que_Errei', 'Causa', 'Regra_Certa', 'Link_Caderno_Questoes', 'Reincidencias', 'Vezes_Revisado', 'Ultima_Revisao'];
+            const headers = ['Data', 'Materia', 'O_Que_Errei', 'Assunto_Especifico', 'Causa', 'Regra_Certa', 'Link_Caderno_Questoes', 'Reincidencias', 'Vezes_Revisado', 'Ultima_Revisao'];
             const rows = appState.error_notebook.map(err => [
                 new Date(err.timestamp).toLocaleDateString('pt-BR'),
                 err.snapshot_subject_name,
                 err.what_went_wrong || '',
+                err.specific_topic || '',
                 err.cause && ERROR_CAUSES[err.cause] ? ERROR_CAUSES[err.cause].label : 'Não classificado',
-                (err.correct_rule || '').replace(/\n/g, ' '),
+                stripHTML(err.correct_rule),
                 err.questions_link || '',
                 err.recurrence_count || 0,
                 err.view_count || 0,
