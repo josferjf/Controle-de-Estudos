@@ -92,7 +92,8 @@
                 questions_attempted: 0,
                 questions_correct: 0,
                 performance_percentage: 0,
-                is_theory_only: true
+                is_theory_only: true,
+                notes: document.getElementById('input-session-notes').value.trim()
             });
 
             appState.study_cycle.current_step_index++;
@@ -100,6 +101,7 @@
             document.getElementById('input-log-qty').value = "";
             document.getElementById('input-log-correct').value = "";
             document.getElementById('input-manual-hours').value = "";
+            document.getElementById('input-session-notes').value = "";
             document.getElementById('input-log-qty').disabled = false;
             document.getElementById('input-log-correct').disabled = false;
             const noQuestionsCheckbox = document.getElementById('input-no-questions');
@@ -240,7 +242,8 @@
                 questions_attempted: qty,
                 questions_correct: correct,
                 performance_percentage: percentage,
-                is_theory_only: isTheoryOnly
+                is_theory_only: isTheoryOnly,
+                notes: document.getElementById('input-session-notes').value.trim()
             });
 
             // Incrementa rotativamente o ciclo para a próxima matéria da fila
@@ -249,6 +252,7 @@
             document.getElementById('input-log-qty').value = "";
             document.getElementById('input-log-correct').value = "";
             document.getElementById('input-manual-hours').value = "";
+            document.getElementById('input-session-notes').value = "";
             document.getElementById('input-log-qty').disabled = false;
             document.getElementById('input-log-correct').disabled = false;
             if (noQuestionsCheckbox) noQuestionsCheckbox.checked = false;
@@ -335,7 +339,7 @@
 
             let logs = getFilteredLogs();
             if (searchTerm) {
-                logs = logs.filter(log => `${log.snapshot_subject_name} ${log.snapshot_topic_title}`.toLowerCase().includes(searchTerm));
+                logs = logs.filter(log => `${log.snapshot_subject_name} ${log.snapshot_topic_title} ${log.notes || ''}`.toLowerCase().includes(searchTerm));
             }
 
             logs.slice().reverse().forEach(log => {
@@ -346,10 +350,13 @@
                 const performanceCell = log.is_theory_only
                     ? `<span class="badge badge-purple">—</span>`
                     : `<span class="badge ${log.performance_percentage >= 80 ? 'badge-success' : 'badge-danger'}">${log.performance_percentage.toFixed(1)}%</span>`;
+                const notesIcon = log.notes
+                    ? `<i data-lucide="sticky-note" style="width:13px; height:13px; color:var(--accent-editorial); vertical-align:middle; margin-left:6px; cursor:help;" title="${escapeHTML(log.notes)}"></i>`
+                    : '';
                 tr.innerHTML = `
                     <td style="white-space:nowrap;">${new Date(log.timestamp).toLocaleDateString()}</td>
                     <td><strong>${escapeHTML(log.snapshot_subject_name)}</strong></td>
-                    <td>${escapeHTML(log.snapshot_topic_title)}</td>
+                    <td>${escapeHTML(log.snapshot_topic_title)}${notesIcon}</td>
                     <td style="white-space:nowrap;">${Math.floor(log.liquid_seconds / 60)} min</td>
                     <td style="white-space:nowrap;">${questionsCell}</td>
                     <td style="white-space:nowrap;">${performanceCell}</td>
