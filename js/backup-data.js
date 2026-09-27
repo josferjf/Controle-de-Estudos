@@ -3,9 +3,9 @@
 // ============================================================
 
         function exportToCSV() {
-            const headers = ['Data', 'Materia', 'Topico', 'Segundos_Liquidos', 'Apenas_Teoria', 'Questoes_Feitas', 'Questoes_Corretas', 'Aproveitamento'];
+            const headers = ['Data', 'Materia', 'Topico', 'Segundos_Liquidos', 'Apenas_Teoria', 'Questoes_Feitas', 'Questoes_Corretas', 'Aproveitamento', 'Anotacoes'];
             const rows = appState.study_logs.map(l => [
-                new Date(l.timestamp).toLocaleDateString(), l.snapshot_subject_name, l.snapshot_topic_title, l.liquid_seconds, l.is_theory_only ? 'Sim' : 'Não', l.questions_attempted, l.questions_correct, l.is_theory_only ? '' : l.performance_percentage.toFixed(1)
+                new Date(l.timestamp).toLocaleDateString(), l.snapshot_subject_name, l.snapshot_topic_title, l.liquid_seconds, l.is_theory_only ? 'Sim' : 'Não', l.questions_attempted, l.questions_correct, l.is_theory_only ? '' : l.performance_percentage.toFixed(1), l.notes || ''
             ]);
             downloadCSV(headers, rows, `controle_estudos_sessoes_${Date.now()}.csv`);
         }
