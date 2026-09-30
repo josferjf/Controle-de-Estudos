@@ -176,6 +176,7 @@
                             <label style="display:flex; align-items:center; gap:8px; margin-bottom: 15px; font-size:13px; cursor:pointer; color: var(--text-muted);">
                                 <input type="checkbox" id="input-no-questions" style="width:auto;" onchange="toggleNoQuestionsMode()"> Esta sessão foi só teoria (sem questões)
                             </label>
+                            <div id="pending-questions-batch-notice" style="display:none; background: var(--warning-alpha); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-interactive); padding: 10px 12px; margin-bottom: 15px; font-size: 12px; color: var(--warning);"></div>
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; align-items: end;">
                                 <div class="form-group" style="margin-bottom: 0;">
                                     <label>Questões Feitas</label>
@@ -191,6 +192,15 @@
                                 </div>
                                 <div>
                                     <button class="btn" style="width: 100%; height: 43px;" onclick="submitStudySession()"><i data-lucide="save"></i> Salvar Avanço</button>
+                                </div>
+                            </div>
+                            <div style="margin-top: 12px;">
+                                <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; color: var(--text-muted);">
+                                    <input type="checkbox" id="input-partial-questions" style="width:auto;" onchange="togglePartialQuestionsMode()"> Só fiz parte das questões desse caderno (vou terminar depois)
+                                </label>
+                                <div id="partial-questions-total-group" class="form-group" style="display:none; margin-top: 10px; max-width: 260px;">
+                                    <label>Quantas questões tem o caderno ao todo?</label>
+                                    <input type="number" id="input-questions-batch-total" placeholder="Ex: 50" min="1">
                                 </div>
                             </div>
                             <div class="form-group" style="margin-top: 15px; margin-bottom: 0;">
