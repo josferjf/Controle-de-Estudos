@@ -16,6 +16,13 @@
             }
         }
 
+        // "Só fiz parte das questões": mostra o campo pra informar quantas questões o caderno tem ao todo,
+        // pra o sistema saber quantas ainda faltam quando você continuar depois.
+        function togglePartialQuestionsMode() {
+            const checkbox = document.getElementById('input-partial-questions');
+            document.getElementById('partial-questions-total-group').style.display = checkbox.checked ? 'block' : 'none';
+        }
+
         // "Preciso de mais tempo": pra quando o assunto não coube numa sessão só. Registra o tempo estudado
         // (conta pro total de horas e pra meta do dia), mas NÃO marca o tópico como concluído — ele continua
         // pendente de onde parou. A matéria fica pausada da fila por 2 dias (evita reaparecer amanhã de manhã
@@ -177,6 +184,50 @@
 
             const percentage = qty > 0 ? (correct / qty) * 100 : 0;
 
+            // "Só fiz parte das questões desse caderno": em vez de completar o tópico, guarda quantas
+            // questões já foram feitas (somando com o que já vinha de antes, se essa já não era a
+            // primeira parte) e devolve o tópico pra fila depois de 2 dias — igual ao "Preciso de mais
+            // tempo", só que aqui a teoria já foi concluída, só falta terminar o caderno de questões.
+            const partialQuestionsCheckbox = document.getElementById('input-partial-questions');
+            const isPartialQuestions = partialQuestionsCheckbox ? partialQuestionsCheckbox.checked : false;
+            let existingBatch = null;
+            let topicRef = null;
+            appState.subjects.forEach(s => {
+                if (s.id === currentStep.subjectId) {
+                    s.topics.forEach(t => { if (t.id === currentStep.topicId) topicRef = t; });
+                }
+            });
+            if (topicRef && topicRef.pending_question_batch) existingBatch = topicRef.pending_question_batch;
+
+            let batchStillOpen = false;
+            let batchStatusSuffix = '';
+            if ((isPartialQuestions || existingBatch) && !isTheoryOnly && topicRef) {
+                const totalInput = document.getElementById('input-questions-batch-total').value;
+                const batchTotal = existingBatch ? existingBatch.total : (parseInt(totalInput) || 0);
+
+                if (!existingBatch && batchTotal <= 0) {
+                    customAlert("Informe quantas questões o caderno tem ao todo.");
+                    return;
+                }
+
+                const accumulatedDone = (existingBatch ? existingBatch.done : 0) + qty;
+                const accumulatedCorrect = (existingBatch ? existingBatch.correct : 0) + correct;
+
+                if (accumulatedDone < batchTotal) {
+                    // Caderno ainda não terminou: guarda o progresso e adia a matéria por 2 dias
+                    batchStillOpen = true;
+                    topicRef.pending_question_batch = { total: batchTotal, done: accumulatedDone, correct: accumulatedCorrect };
+                    const postponeUntil = new Date();
+                    postponeUntil.setDate(postponeUntil.getDate() + 2);
+                    topicRef.postponed_until = postponeUntil.toISOString();
+                    batchStatusSuffix = ` (questões parciais: ${accumulatedDone}/${batchTotal} feitas)`;
+                } else {
+                    // Caderno concluído nessa submissão: some com o controle de lote, tópico segue o fluxo normal de conclusão
+                    delete topicRef.pending_question_batch;
+                    batchStatusSuffix = ` (caderno de ${batchTotal} questões concluído)`;
+                }
+            }
+
             // Só gera gatilho automatizado se o estudante realmente informou questões realizadas (sessões só teoria nunca disparam).
             // Usa a mesma "Nota de Corte Almejada" configurada pelo usuário (usada também na prioridade dinâmica do ciclo),
             // em vez de um percentual fixo, para manter o critério de "bom desempenho" consistente em todo o sistema.
@@ -198,7 +249,10 @@
                 });
             }
 
-            if (!currentStep.isReviewMode && currentStep.topicId !== "STRATEGIC" && currentStep.topicId !== "TUDAO") {
+            if (batchStillOpen) {
+                // Caderno de questões ainda incompleto: NÃO marca o tópico como concluído (a teoria já foi
+                // estudada, só falta terminar as questões) — só registra o tempo e adia a matéria.
+            } else if (!currentStep.isReviewMode && currentStep.topicId !== "STRATEGIC" && currentStep.topicId !== "TUDAO") {
                 appState.subjects.forEach(s => {
                     if (s.id === currentStep.subjectId) {
                         s.topics.forEach(t => {
@@ -237,7 +291,7 @@
                 timestamp: new Date().toISOString(),
                 subject_id: currentStep.subjectId,
                 snapshot_subject_name: currentStep.subjectName,
-                snapshot_topic_title: currentStep.topicTitle,
+                snapshot_topic_title: currentStep.topicTitle + batchStatusSuffix,
                 liquid_seconds: logSeconds,
                 questions_attempted: qty,
                 questions_correct: correct,
@@ -255,9 +309,16 @@
             document.getElementById('input-session-notes').value = "";
             document.getElementById('input-log-qty').disabled = false;
             document.getElementById('input-log-correct').disabled = false;
+            document.getElementById('input-partial-questions').checked = false;
+            document.getElementById('input-questions-batch-total').value = "";
+            document.getElementById('partial-questions-total-group').style.display = 'none';
             if (noQuestionsCheckbox) noQuestionsCheckbox.checked = false;
 
-            customAlert("Progresso pragmático salvo!");
+            if (batchStillOpen) {
+                customAlert(`Progresso salvo! Faltam questões desse caderno — a matéria volta em 2 dias pra você continuar.${batchStatusSuffix}`);
+            } else {
+                customAlert("Progresso pragmático salvo!" + (batchStatusSuffix ? batchStatusSuffix : ""));
+            }
             resetTimer();
             regenerateSmartCycle(false);
 
