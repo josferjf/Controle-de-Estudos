@@ -65,6 +65,26 @@
                     linkButtonsHtml += `<a href="${escapeHTML(currentStep.topicMaterialLink)}" target="_blank" rel="noopener" class="filter-chip topic-link-btn" style="display:inline-flex; padding: 7px 14px; background: var(--primary-alpha); text-decoration:none; font-size:13px;"><i data-lucide="book-open" style="width:13px; height:13px;"></i>&nbsp;Material Teórico</a>`;
                 }
                 topicLinkContainer.innerHTML = linkButtonsHtml ? `<div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-start;">${linkButtonsHtml}</div>` : '';
+
+                // Aviso de "caderno de questões em andamento" — quando o tópico já teve parte das questões
+                // feitas antes (via "Só fiz parte das questões desse caderno") e ainda não terminou.
+                const batchNoticeEl = document.getElementById('pending-questions-batch-notice');
+                const batchTotalInput = document.getElementById('input-questions-batch-total');
+                if (batchNoticeEl) {
+                    const subj = appState.subjects.find(s => s.id === currentStep.subjectId);
+                    const topic = subj ? subj.topics.find(t => t.id === currentStep.topicId) : null;
+                    const batch = topic ? topic.pending_question_batch : null;
+                    if (batch) {
+                        const remaining = batch.total - batch.done;
+                        batchNoticeEl.style.display = 'block';
+                        batchNoticeEl.innerHTML = `<i data-lucide="list-checks" style="width:13px; height:13px; vertical-align:middle; margin-right:4px;"></i> Caderno em andamento: ${batch.done}/${batch.total} questões feitas (${batch.correct} acertos) — faltam ${remaining}. Marque "Só fiz parte" de novo se não for terminar tudo agora.`;
+                        if (batchTotalInput) batchTotalInput.value = batch.total;
+                        lucide.createIcons();
+                    } else {
+                        batchNoticeEl.style.display = 'none';
+                        batchNoticeEl.innerHTML = '';
+                    }
+                }
                 
                 const alertZone = document.getElementById('review-alert-indicator');
                 if (currentStep.pilar === 1) {
