@@ -390,6 +390,9 @@
         }
 
         // Histórico de Sessões: aplica o filtro de período + busca por matéria/tópico
+        // ID da sessão sendo editada inline no histórico (null = nenhuma). Só uma por vez.
+        let editingStudyLogId = null;
+
         function renderStudyLogsHistory() {
             const tbody = document.getElementById('stats-table-body');
             if (!tbody) return;
@@ -405,6 +408,27 @@
 
             logs.slice().reverse().forEach(log => {
                 const tr = document.createElement('tr');
+
+                if (editingStudyLogId === log.id) {
+                    // Linha em modo de edição: campos numéricos editáveis pra corrigir erro de digitação
+                    tr.innerHTML = `
+                        <td style="white-space:nowrap;">${new Date(log.timestamp).toLocaleDateString()}</td>
+                        <td><strong>${escapeHTML(log.snapshot_subject_name)}</strong></td>
+                        <td>${escapeHTML(log.snapshot_topic_title)}</td>
+                        <td style="white-space:nowrap;"><input type="number" id="edit-log-minutes-${log.id}" value="${Math.floor(log.liquid_seconds / 60)}" min="0" style="width:70px; padding:4px 6px;"> min</td>
+                        <td style="white-space:nowrap;">
+                            ${log.is_theory_only ? '<span class="badge badge-purple">Só Teoria</span>' : `<input type="number" id="edit-log-correct-${log.id}" value="${log.questions_correct}" min="0" style="width:50px; padding:4px 6px;">/<input type="number" id="edit-log-qty-${log.id}" value="${log.questions_attempted}" min="0" style="width:50px; padding:4px 6px;">`}
+                        </td>
+                        <td style="white-space:nowrap;">—</td>
+                        <td style="white-space:nowrap; display:flex; gap:4px;">
+                            <button class="filter-chip" style="padding: 4px 8px; background: var(--primary-alpha); color: var(--primary-text); font-size: 11px;" onclick="saveEditStudyLog('${log.id}')"><i data-lucide="check" style="width:12px; height:12px;"></i></button>
+                            <button class="filter-chip" style="padding: 4px 8px; font-size: 11px;" onclick="cancelEditStudyLog()"><i data-lucide="x" style="width:12px; height:12px;"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    return;
+                }
+
                 const questionsCell = log.is_theory_only
                     ? `<span class="badge badge-purple">Só Teoria</span>`
                     : `${log.questions_correct}/${log.questions_attempted}`;
@@ -421,11 +445,53 @@
                     <td style="white-space:nowrap;">${Math.floor(log.liquid_seconds / 60)} min</td>
                     <td style="white-space:nowrap;">${questionsCell}</td>
                     <td style="white-space:nowrap;">${performanceCell}</td>
-                    <td><button class="filter-chip" style="padding: 4px 8px; background: var(--danger-alpha); color: var(--danger); font-size: 11px;" onclick="deleteStudyLog('${log.id}')"><i data-lucide="trash-2" style="width:12px; height:12px;"></i></button></td>
+                    <td style="white-space:nowrap; display:flex; gap:4px;">
+                        <button class="filter-chip" style="padding: 4px 8px; font-size: 11px;" onclick="startEditStudyLog('${log.id}')"><i data-lucide="pencil" style="width:12px; height:12px;"></i></button>
+                        <button class="filter-chip" style="padding: 4px 8px; background: var(--danger-alpha); color: var(--danger); font-size: 11px;" onclick="deleteStudyLog('${log.id}')"><i data-lucide="trash-2" style="width:12px; height:12px;"></i></button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
             lucide.createIcons();
+        }
+
+        function startEditStudyLog(logId) {
+            editingStudyLogId = logId;
+            renderStudyLogsHistory();
+        }
+
+        function cancelEditStudyLog() {
+            editingStudyLogId = null;
+            renderStudyLogsHistory();
+        }
+
+        function saveEditStudyLog(logId) {
+            const log = appState.study_logs.find(l => l.id === logId);
+            if (!log) return;
+
+            const minutesInput = document.getElementById(`edit-log-minutes-${logId}`);
+            const minutes = parseInt(minutesInput.value);
+            if (isNaN(minutes) || minutes < 0) { customAlert("Informe um tempo válido (em minutos)."); return; }
+            log.liquid_seconds = minutes * 60;
+
+            if (!log.is_theory_only) {
+                const correctInput = document.getElementById(`edit-log-correct-${logId}`);
+                const qtyInput = document.getElementById(`edit-log-qty-${logId}`);
+                const correct = parseInt(correctInput.value);
+                const qty = parseInt(qtyInput.value);
+                if (isNaN(correct) || isNaN(qty) || correct < 0 || qty < 0) { customAlert("Informe números válidos de questões e acertos."); return; }
+                if (correct > qty) { customAlert("Acertos não pode ser maior que questões feitas."); return; }
+                log.questions_attempted = qty;
+                log.questions_correct = correct;
+                log.performance_percentage = qty > 0 ? (correct / qty) * 100 : 0;
+            }
+
+            editingStudyLogId = null;
+            saveToDatabase();
+            updateUI();
+            if (document.getElementById('view-stats').classList.contains('active')) {
+                renderCharts();
+            }
         }
 
         // Exclui uma sessão individual do histórico (ex: registro digitado errado), sem afetar as demais
