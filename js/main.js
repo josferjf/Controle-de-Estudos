@@ -19,9 +19,19 @@ if ('serviceWorker' in navigator) {
 
 // Roda uma vez, assim que o usuário está autenticado (login novo ou sessão já existente).
 async function runAppInitialization() {
-    const loaded = await loadFromDatabase();
-    if (!loaded) {
-        // Primeira vez desta conta: começa do zero com o estado padrão e já salva na nuvem
+    const result = await loadFromDatabase();
+
+    if (result.status === 'error') {
+        // NUNCA inicializa nem salva um estado em branco aqui — se a leitura falhou (rede, permissão,
+        // instabilidade), os dados reais podem muito bem continuar intactos no banco. Prosseguir e
+        // salvar um estado vazio por cima é exatamente o que já causou perda de dados antes. Em vez
+        // disso, interrompe e deixa claro que precisa tentar de novo.
+        throw new Error('Não foi possível carregar seus dados salvos (verifique sua internet e tente novamente). Por segurança, nada foi alterado ainda.');
+    }
+
+    if (result.status === 'new') {
+        // Primeira vez desta conta de verdade (o documento realmente não existe ainda): começa do zero
+        // com o estado padrão e já salva na nuvem.
         appState = JSON.parse(JSON.stringify(defaultAppState));
         saveToDatabase();
     }
