@@ -89,19 +89,24 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
+// IMPORTANTE: "a conta é nova" (documento realmente não existe) e "não consegui ler os dados agora"
+// (erro de rede, de permissão, instabilidade) são situações completamente diferentes e precisam ser
+// tratadas de forma diferente — confundir as duas já causou perda de dados reais no passado (o app
+// tratava uma falha de leitura como "conta nova" e salvava um estado em branco por cima dos dados
+// de verdade). Por isso essa função retorna um status explícito em vez de true/false.
 async function loadFromDatabase() {
-    if (!currentUserId) return false;
+    if (!currentUserId) return { status: 'error', error: new Error('Usuário não autenticado') };
     try {
         const doc = await firebase.firestore().collection('users').doc(currentUserId).get();
         if (doc.exists) {
             appState = doc.data();
             if (!appState.timer_state) appState.timer_state = JSON.parse(JSON.stringify(defaultAppState.timer_state));
-            return true;
+            return { status: 'loaded' };
         }
-        return false;
+        return { status: 'new' };
     } catch (err) {
         console.error('Erro ao carregar da nuvem:', err);
-        return false;
+        return { status: 'error', error: err };
     }
 }
 
