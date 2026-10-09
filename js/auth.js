@@ -6,8 +6,17 @@ function checkAuthState() {
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             currentUserId = user.uid;
-            showAppView();
-            await runAppInitialization();
+            try {
+                showAppView();
+                await runAppInitialization();
+            } catch (err) {
+                // Se a inicialização falhar (ex: não conseguiu carregar os dados salvos), mostra um aviso
+                // claro em vez de deixar o app travado numa tela em branco sem explicação — e, crucialmente,
+                // isso acontece ANTES de qualquer dado em branco ser salvo por cima dos dados reais.
+                console.error('Erro ao inicializar o app:', err);
+                showLoginView();
+                showLoginError(err && err.message ? err.message : 'Ocorreu um erro ao carregar seus dados. Tente novamente.');
+            }
         } else {
             currentUserId = null;
             showLoginView();
