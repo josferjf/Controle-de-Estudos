@@ -1,0 +1,481 @@
+// ============================================================
+// REGISTRO DE SESSÕES DE ESTUDO
+// ============================================================
+
+        function toggleNoQuestionsMode() {
+            const checkbox = document.getElementById('input-no-questions');
+            const qtyInput = document.getElementById('input-log-qty');
+            const correctInput = document.getElementById('input-log-correct');
+            const isChecked = checkbox.checked;
+
+            qtyInput.disabled = isChecked;
+            correctInput.disabled = isChecked;
+            if (isChecked) {
+                qtyInput.value = "";
+                correctInput.value = "";
+            }
+        }
+
+        // "Só fiz parte das questões": mostra o campo pra informar quantas questões o caderno tem ao todo,
+        // pra o sistema saber quantas ainda faltam quando você continuar depois.
+        function togglePartialQuestionsMode() {
+            const checkbox = document.getElementById('input-partial-questions');
+            document.getElementById('partial-questions-total-group').style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        // "Preciso de mais tempo": pra quando o assunto não coube numa sessão só. Registra o tempo estudado
+        // (conta pro total de horas e pra meta do dia), mas NÃO marca o tópico como concluído — ele continua
+        // pendente de onde parou. A matéria fica pausada da fila por 2 dias (evita reaparecer amanhã de manhã
+        // só porque bateu a vez dela no rodízio), e depois volta normal pra você continuar o mesmo assunto.
+        function submitPartialSession() {
+            const currentStep = appState.study_cycle.steps_sequence[appState.study_cycle.current_step_index];
+            if (!currentStep || currentStep.subjectId === "none") {
+                customAlert("Nenhuma matéria selecionada no ciclo ativo.");
+                return;
+            }
+            if (currentStep.isReviewMode) {
+                customAlert("Essa opção é só pra aulas/tópicos normais. Pra revisões, use o botão 'Pular' se precisar adiar.");
+                return;
+            }
+
+            const calculatedSeconds = appState.timer_state.mode === 'pomodoro'
+                ? (appState.timer_state.total_focus_seconds_this_session || 0) + (appState.timer_state.pomodoro_phase === 'focus' ? (POMODORO_FOCUS_SECONDS - appState.timer_state.seconds) : 0)
+                : appState.timer_state.seconds;
+
+            const manualHoursInput = document.getElementById('input-manual-hours').value;
+            let logSeconds;
+            if (manualHoursInput && manualHoursInput.trim() !== "") {
+                const manualHours = parseFloat(manualHoursInput);
+                if (isNaN(manualHours) || manualHours <= 0) {
+                    customAlert("O ajuste manual de tempo precisa ser um número maior que zero.");
+                    return;
+                }
+                logSeconds = manualHours * 3600;
+            } else if (calculatedSeconds > 5) {
+                logSeconds = calculatedSeconds;
+            } else {
+                customAlert("O cronômetro não foi iniciado (ou rodou por menos de 5 segundos). Inicie o cronômetro antes de estudar, ou preencha o campo 'Ajustar Tempo (opcional)' manualmente antes de salvar.");
+                return;
+            }
+
+            // Marca o tópico com um prazo de 2 dias antes de voltar a aparecer na fila — a matéria fica de
+            // fora do rodízio até lá, sem precisar contar sessões (funciona igual estudando todo dia ou não).
+            const postponeUntil = new Date();
+            postponeUntil.setDate(postponeUntil.getDate() + 2);
+
+            appState.subjects.forEach(s => {
+                if (s.id === currentStep.subjectId) {
+                    s.topics.forEach(t => {
+                        if (t.id === currentStep.topicId) {
+                            t.postponed_until = postponeUntil.toISOString();
+                            t.last_studied_at = new Date().toISOString();
+                        }
+                    });
+                }
+            });
+
+            appState.study_logs.push({
+                id: "log-" + Date.now(),
+                timestamp: new Date().toISOString(),
+                subject_id: currentStep.subjectId,
+                snapshot_subject_name: currentStep.subjectName,
+                snapshot_topic_title: `${currentStep.topicTitle} (sessão parcial — ainda não concluído)`,
+                liquid_seconds: logSeconds,
+                questions_attempted: 0,
+                questions_correct: 0,
+                performance_percentage: 0,
+                is_theory_only: true,
+                notes: document.getElementById('input-session-notes').value.trim()
+            });
+
+            appState.study_cycle.current_step_index++;
+
+            document.getElementById('input-log-qty').value = "";
+            document.getElementById('input-log-correct').value = "";
+            document.getElementById('input-manual-hours').value = "";
+            document.getElementById('input-session-notes').value = "";
+            document.getElementById('input-log-qty').disabled = false;
+            document.getElementById('input-log-correct').disabled = false;
+            const noQuestionsCheckbox = document.getElementById('input-no-questions');
+            if (noQuestionsCheckbox) noQuestionsCheckbox.checked = false;
+
+            customAlert("Tempo registrado! Essa matéria volta a aparecer na fila em 2 dias, pra você continuar esse mesmo assunto.");
+            resetTimer();
+            regenerateSmartCycle(false);
+
+            updateUI();
+        }
+
+        function submitStudySession() {
+            const qtyInput = document.getElementById('input-log-qty').value;
+            const correctInput = document.getElementById('input-log-correct').value;
+            
+            const currentStep = appState.study_cycle.steps_sequence[appState.study_cycle.current_step_index];
+            if (!currentStep || currentStep.subjectId === "none") {
+                customAlert("Nenhuma matéria selecionada no ciclo ativo.");
+                return;
+            }
+
+            const noQuestionsCheckbox = document.getElementById('input-no-questions');
+            const isTheoryOnly = noQuestionsCheckbox ? noQuestionsCheckbox.checked : false;
+
+            let qty = 0;
+            let correct = 0;
+
+            if (!isTheoryOnly) {
+                qty = parseInt(qtyInput) || 0;
+                correct = parseInt(correctInput) || 0;
+
+                if (qtyInput.trim() !== "" || correctInput.trim() !== "") {
+                    if (qty < 0 || correct < 0) {
+                        customAlert("A quantidade de questões ou acertos não pode ser um número negativo.");
+                        return;
+                    }
+                    if (correct > qty) {
+                        customAlert("Atenção Inconsistência: O número de acertos não pode superar o total de questões feitas.");
+                        return;
+                    }
+                }
+            }
+
+            const calculatedSeconds = appState.timer_state.mode === 'pomodoro'
+                ? (appState.timer_state.total_focus_seconds_this_session || 0) + (appState.timer_state.pomodoro_phase === 'focus' ? (POMODORO_FOCUS_SECONDS - appState.timer_state.seconds) : 0)
+                : appState.timer_state.seconds;
+
+            const manualHoursInput = document.getElementById('input-manual-hours').value;
+            let logSeconds;
+            if (manualHoursInput && manualHoursInput.trim() !== "") {
+                const manualHours = parseFloat(manualHoursInput);
+                if (isNaN(manualHours) || manualHours <= 0) {
+                    customAlert("O ajuste manual de tempo precisa ser um número maior que zero.");
+                    return;
+                }
+                logSeconds = manualHours * 3600;
+            } else if (calculatedSeconds > 5) {
+                logSeconds = calculatedSeconds;
+            } else {
+                customAlert("O cronômetro não foi iniciado (ou rodou por menos de 5 segundos). Inicie o cronômetro antes de estudar, ou preencha o campo 'Ajustar Tempo (opcional)' manualmente antes de salvar.");
+                return;
+            }
+
+            const percentage = qty > 0 ? (correct / qty) * 100 : 0;
+
+            // "Só fiz parte das questões desse caderno": em vez de completar o tópico, guarda quantas
+            // questões já foram feitas (somando com o que já vinha de antes, se essa já não era a
+            // primeira parte) e devolve o tópico pra fila depois de 2 dias — igual ao "Preciso de mais
+            // tempo", só que aqui a teoria já foi concluída, só falta terminar o caderno de questões.
+            const partialQuestionsCheckbox = document.getElementById('input-partial-questions');
+            const isPartialQuestions = partialQuestionsCheckbox ? partialQuestionsCheckbox.checked : false;
+            let existingBatch = null;
+            let topicRef = null;
+            appState.subjects.forEach(s => {
+                if (s.id === currentStep.subjectId) {
+                    s.topics.forEach(t => { if (t.id === currentStep.topicId) topicRef = t; });
+                }
+            });
+            if (topicRef && topicRef.pending_question_batch) existingBatch = topicRef.pending_question_batch;
+
+            let batchStillOpen = false;
+            let batchStatusSuffix = '';
+            if ((isPartialQuestions || existingBatch) && !isTheoryOnly && topicRef) {
+                const totalInput = document.getElementById('input-questions-batch-total').value;
+                const batchTotal = existingBatch ? existingBatch.total : (parseInt(totalInput) || 0);
+
+                if (!existingBatch && batchTotal <= 0) {
+                    customAlert("Informe quantas questões o caderno tem ao todo.");
+                    return;
+                }
+
+                const accumulatedDone = (existingBatch ? existingBatch.done : 0) + qty;
+                const accumulatedCorrect = (existingBatch ? existingBatch.correct : 0) + correct;
+
+                if (accumulatedDone < batchTotal) {
+                    // Caderno ainda não terminou: guarda o progresso e adia a matéria por 2 dias
+                    batchStillOpen = true;
+                    topicRef.pending_question_batch = { total: batchTotal, done: accumulatedDone, correct: accumulatedCorrect };
+                    const postponeUntil = new Date();
+                    postponeUntil.setDate(postponeUntil.getDate() + 2);
+                    topicRef.postponed_until = postponeUntil.toISOString();
+                    batchStatusSuffix = ` (questões parciais: ${accumulatedDone}/${batchTotal} feitas)`;
+                } else {
+                    // Caderno concluído nessa submissão: some com o controle de lote, tópico segue o fluxo normal de conclusão
+                    delete topicRef.pending_question_batch;
+                    batchStatusSuffix = ` (caderno de ${batchTotal} questões concluído)`;
+                }
+            }
+
+            // Só gera gatilho automatizado se o estudante realmente informou questões realizadas (sessões só teoria nunca disparam).
+            // Usa a mesma "Nota de Corte Almejada" configurada pelo usuário (usada também na prioridade dinâmica do ciclo),
+            // em vez de um percentual fixo, para manter o critério de "bom desempenho" consistente em todo o sistema.
+            const errorTriggerThreshold = appState.user_configuration.target_score || 85;
+            if (!isTheoryOnly && qty > 0 && percentage < errorTriggerThreshold) {
+                appState.error_notebook.unshift({
+                    id: "err-auto-" + Date.now(),
+                    timestamp: new Date().toISOString(),
+                    subject_id: currentStep.subjectId,
+                    snapshot_subject_name: currentStep.subjectName,
+                    what_went_wrong: `${currentStep.topicTitle} — ${percentage.toFixed(1)}% de acertos (${correct}/${qty} Q)`,
+                    cause: null,
+                    correct_rule: '',
+                    questions_link: currentStep.topicLink || '',
+                    recurrence_count: 0,
+                    view_count: 0,
+                    last_viewed_at: null,
+                    trigger_percentage: percentage
+                });
+            }
+
+            if (batchStillOpen) {
+                // Caderno de questões ainda incompleto: NÃO marca o tópico como concluído (a teoria já foi
+                // estudada, só falta terminar as questões) — só registra o tempo e adia a matéria.
+            } else if (!currentStep.isReviewMode) {
+                appState.subjects.forEach(s => {
+                    if (s.id === currentStep.subjectId) {
+                        s.topics.forEach(t => {
+                            // Marca a data real da sessão, não só "concluído" — é isso que permite a revisão acumulada
+                            // pegar as 3 aulas realmente estudadas por último, mesmo com tópicos marcados fora de ordem.
+                            if (t.id === currentStep.topicId) { t.completed = true; t.last_studied_at = new Date().toISOString(); }
+                        });
+                    }
+                });
+            } else if (currentStep.topicId === "TUDAO") {
+                // Registra quando a revisão geral foi concluída (respeita a periodicidade) e marca o marco da
+                // revisão acumulada, pra não repetir logo depois uma revisão das 3 últimas que já foi coberta
+                appState.subjects.forEach(s => {
+                    if (s.id === currentStep.subjectId) {
+                        s.last_tudao_review_date = new Date().toISOString();
+                        s.last_cumulative_review_milestone = s.topics.filter(t => t.completed).length;
+                    }
+                });
+            } else if (currentStep.topicId === "CUMULATIVE") {
+                // Marca esse marco de revisão (ex: "revisão feita até a Aula 2") como resolvido — sem isso, a
+                // matéria ficaria travada mostrando a mesma revisão pra sempre, já que nenhum tópico novo é
+                // concluído aqui. Assim que marcado, a Aula seguinte volta a aparecer no turno normal da matéria.
+                appState.subjects.forEach(s => {
+                    if (s.id === currentStep.subjectId) {
+                        s.last_cumulative_review_milestone = s.topics.filter(t => t.completed).length;
+                    }
+                });
+            }
+
+            appState.study_logs.push({
+                id: "log-" + Date.now(),
+                timestamp: new Date().toISOString(),
+                subject_id: currentStep.subjectId,
+                snapshot_subject_name: currentStep.subjectName,
+                snapshot_topic_title: currentStep.topicTitle + batchStatusSuffix,
+                liquid_seconds: logSeconds,
+                questions_attempted: qty,
+                questions_correct: correct,
+                performance_percentage: percentage,
+                is_theory_only: isTheoryOnly,
+                notes: document.getElementById('input-session-notes').value.trim()
+            });
+
+            // Incrementa rotativamente o ciclo para a próxima matéria da fila
+            appState.study_cycle.current_step_index++;
+            
+            document.getElementById('input-log-qty').value = "";
+            document.getElementById('input-log-correct').value = "";
+            document.getElementById('input-manual-hours').value = "";
+            document.getElementById('input-session-notes').value = "";
+            document.getElementById('input-log-qty').disabled = false;
+            document.getElementById('input-log-correct').disabled = false;
+            document.getElementById('input-partial-questions').checked = false;
+            document.getElementById('input-questions-batch-total').value = "";
+            document.getElementById('partial-questions-total-group').style.display = 'none';
+            if (noQuestionsCheckbox) noQuestionsCheckbox.checked = false;
+
+            if (batchStillOpen) {
+                customAlert(`Progresso salvo! Faltam questões desse caderno — a matéria volta em 2 dias pra você continuar.${batchStatusSuffix}`);
+            } else {
+                customAlert("Progresso pragmático salvo!" + (batchStatusSuffix ? batchStatusSuffix : ""));
+            }
+            resetTimer();
+            regenerateSmartCycle(false);
+
+            updateUI();
+        }
+
+        function changeStatsPeriod(period) {
+            currentStatsPeriod = period;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            document.getElementById(`filter-${period}`).classList.add('active');
+            updateUI();
+            renderCharts();
+            updateStatsPeriodPill();
+        }
+
+        // Posiciona a pílula deslizante exatamente sobre o botão de período ativo no momento
+        function updateStatsPeriodPill() {
+            const activeBtn = document.querySelector('#stats-period-filter .filter-chip.active');
+            const pill = document.getElementById('stats-period-pill');
+            if (!activeBtn || !pill) return;
+            pill.style.width = activeBtn.offsetWidth + 'px';
+            pill.style.left = activeBtn.offsetLeft + 'px';
+        }
+
+        function populateSubjectSelector() {
+            const selector = document.getElementById('chart-subject-selector');
+            if (!selector) return;
+            selector.innerHTML = '<option value="all">Todas as Matérias</option>';
+            appState.subjects.forEach(s => {
+                selector.innerHTML += `<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)}</option>`;
+            });
+        }
+
+        function getFilteredLogs() {
+            const now = new Date();
+            return appState.study_logs.filter(log => {
+                const logDate = new Date(log.timestamp);
+                if (currentStatsPeriod === '7') {
+                    return (now - logDate) / (1000 * 60 * 60 * 24) <= 7;
+                } else if (currentStatsPeriod === '30') {
+                    return (now - logDate) / (1000 * 60 * 60 * 24) <= 30;
+                }
+                return true; 
+            });
+        }
+
+        // Logs do período imediatamente anterior ao filtro atual (ex: os 7 dias antes dos últimos 7 dias), para comparação de tendência
+        function getPreviousPeriodLogs() {
+            if (currentStatsPeriod === 'all') return null;
+            const days = parseInt(currentStatsPeriod);
+            const now = new Date();
+            return appState.study_logs.filter(log => {
+                const logDate = new Date(log.timestamp);
+                const daysAgo = (now - logDate) / (1000 * 60 * 60 * 24);
+                return daysAgo > days && daysAgo <= (days * 2);
+            });
+        }
+
+        // Formata a variação percentual entre o período atual e o anterior, para exibir junto aos stat-boxes
+        function formatTrendDelta(current, previous) {
+            if (previous === null) return "";
+            if (previous === 0) return current > 0 ? `<span style="color:var(--success); font-weight:700;">▲</span> novo neste período` : "";
+            const deltaPct = ((current - previous) / previous) * 100;
+            if (Math.abs(deltaPct) < 0.5) return "≈ estável vs. período anterior";
+            const isUp = deltaPct > 0;
+            const arrow = isUp ? "▲" : "▼";
+            const color = isUp ? "var(--success)" : "var(--danger)";
+            return `<span style="color:${color}; font-weight:700;">${arrow} ${Math.abs(deltaPct).toFixed(0)}%</span> vs. período anterior`;
+        }
+
+        // Histórico de Sessões: aplica o filtro de período + busca por matéria/tópico
+        // ID da sessão sendo editada inline no histórico (null = nenhuma). Só uma por vez.
+        let editingStudyLogId = null;
+
+        function renderStudyLogsHistory() {
+            const tbody = document.getElementById('stats-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            const searchInput = document.getElementById('stats-history-search');
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            let logs = getFilteredLogs();
+            if (searchTerm) {
+                logs = logs.filter(log => `${log.snapshot_subject_name} ${log.snapshot_topic_title} ${log.notes || ''}`.toLowerCase().includes(searchTerm));
+            }
+
+            logs.slice().reverse().forEach(log => {
+                const tr = document.createElement('tr');
+
+                if (editingStudyLogId === log.id) {
+                    // Linha em modo de edição: campos numéricos editáveis pra corrigir erro de digitação
+                    tr.innerHTML = `
+                        <td style="white-space:nowrap;">${new Date(log.timestamp).toLocaleDateString()}</td>
+                        <td><strong>${escapeHTML(log.snapshot_subject_name)}</strong></td>
+                        <td>${escapeHTML(log.snapshot_topic_title)}</td>
+                        <td style="white-space:nowrap;"><input type="number" id="edit-log-minutes-${log.id}" value="${Math.floor(log.liquid_seconds / 60)}" min="0" style="width:70px; padding:4px 6px;"> min</td>
+                        <td style="white-space:nowrap;">
+                            ${log.is_theory_only ? '<span class="badge badge-purple">Só Teoria</span>' : `<input type="number" id="edit-log-correct-${log.id}" value="${log.questions_correct}" min="0" style="width:50px; padding:4px 6px;">/<input type="number" id="edit-log-qty-${log.id}" value="${log.questions_attempted}" min="0" style="width:50px; padding:4px 6px;">`}
+                        </td>
+                        <td style="white-space:nowrap;">—</td>
+                        <td style="white-space:nowrap; display:flex; gap:4px;">
+                            <button class="filter-chip" style="padding: 4px 8px; background: var(--primary-alpha); color: var(--primary-text); font-size: 11px;" onclick="saveEditStudyLog('${log.id}')"><i data-lucide="check" style="width:12px; height:12px;"></i></button>
+                            <button class="filter-chip" style="padding: 4px 8px; font-size: 11px;" onclick="cancelEditStudyLog()"><i data-lucide="x" style="width:12px; height:12px;"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    return;
+                }
+
+                const questionsCell = log.is_theory_only
+                    ? `<span class="badge badge-purple">Só Teoria</span>`
+                    : `${log.questions_correct}/${log.questions_attempted}`;
+                const performanceCell = log.is_theory_only
+                    ? `<span class="badge badge-purple">—</span>`
+                    : `<span class="badge ${log.performance_percentage >= 80 ? 'badge-success' : 'badge-danger'}">${log.performance_percentage.toFixed(1)}%</span>`;
+                const notesIcon = log.notes
+                    ? `<i data-lucide="sticky-note" style="width:13px; height:13px; color:var(--accent-editorial); vertical-align:middle; margin-left:6px; cursor:help;" title="${escapeHTML(log.notes)}"></i>`
+                    : '';
+                tr.innerHTML = `
+                    <td style="white-space:nowrap;">${new Date(log.timestamp).toLocaleDateString()}</td>
+                    <td><strong>${escapeHTML(log.snapshot_subject_name)}</strong></td>
+                    <td>${escapeHTML(log.snapshot_topic_title)}${notesIcon}</td>
+                    <td style="white-space:nowrap;">${Math.floor(log.liquid_seconds / 60)} min</td>
+                    <td style="white-space:nowrap;">${questionsCell}</td>
+                    <td style="white-space:nowrap;">${performanceCell}</td>
+                    <td style="white-space:nowrap; display:flex; gap:4px;">
+                        <button class="filter-chip" style="padding: 4px 8px; font-size: 11px;" onclick="startEditStudyLog('${log.id}')"><i data-lucide="pencil" style="width:12px; height:12px;"></i></button>
+                        <button class="filter-chip" style="padding: 4px 8px; background: var(--danger-alpha); color: var(--danger); font-size: 11px;" onclick="deleteStudyLog('${log.id}')"><i data-lucide="trash-2" style="width:12px; height:12px;"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function startEditStudyLog(logId) {
+            editingStudyLogId = logId;
+            renderStudyLogsHistory();
+        }
+
+        function cancelEditStudyLog() {
+            editingStudyLogId = null;
+            renderStudyLogsHistory();
+        }
+
+        function saveEditStudyLog(logId) {
+            const log = appState.study_logs.find(l => l.id === logId);
+            if (!log) return;
+
+            const minutesInput = document.getElementById(`edit-log-minutes-${logId}`);
+            const minutes = parseInt(minutesInput.value);
+            if (isNaN(minutes) || minutes < 0) { customAlert("Informe um tempo válido (em minutos)."); return; }
+            log.liquid_seconds = minutes * 60;
+
+            if (!log.is_theory_only) {
+                const correctInput = document.getElementById(`edit-log-correct-${logId}`);
+                const qtyInput = document.getElementById(`edit-log-qty-${logId}`);
+                const correct = parseInt(correctInput.value);
+                const qty = parseInt(qtyInput.value);
+                if (isNaN(correct) || isNaN(qty) || correct < 0 || qty < 0) { customAlert("Informe números válidos de questões e acertos."); return; }
+                if (correct > qty) { customAlert("Acertos não pode ser maior que questões feitas."); return; }
+                log.questions_attempted = qty;
+                log.questions_correct = correct;
+                log.performance_percentage = qty > 0 ? (correct / qty) * 100 : 0;
+            }
+
+            editingStudyLogId = null;
+            saveToDatabase();
+            updateUI();
+            if (document.getElementById('view-stats').classList.contains('active')) {
+                renderCharts();
+            }
+        }
+
+        // Exclui uma sessão individual do histórico (ex: registro digitado errado), sem afetar as demais
+        async function deleteStudyLog(logId) {
+            const confirmed = await customConfirm("Excluir esta sessão do histórico permanentemente? Isso vai recalcular suas métricas.");
+            if (confirmed) {
+                appState.study_logs = appState.study_logs.filter(l => l.id !== logId);
+                saveToDatabase();
+                updateUI();
+                if (document.getElementById('view-stats').classList.contains('active')) {
+                    renderCharts();
+                }
+            }
+        }
+
